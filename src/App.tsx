@@ -122,12 +122,12 @@ export default function App() {
                     <span className="text-cyan-400 cursor-default border-b-2 border-cyan-400 py-4 md:py-5">Generator</span>
                 </div>
             </nav>
-            <main className="flex-1 flex overflow-hidden relative">
+            <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
                 <aside 
-                    className={`bg-[#16191f] flex flex-col overflow-hidden transition-all duration-300 ease-in-out absolute md:relative z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-2xl bottom-0 left-0 w-full h-[55vh] rounded-t-2xl md:bottom-auto md:h-full md:rounded-none ${
+                    className={`bg-[#16191f] flex flex-col overflow-hidden transition-[height,width] duration-300 ease-in-out z-40 order-2 md:order-1 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-2xl flex-shrink-0 ${
                         leftOpen 
-                            ? 'translate-y-0 border-t border-white/10 md:w-80 md:border-t-0 md:border-r md:border-white/5 md:translate-x-0' 
-                            : 'translate-y-full border-t-0 md:w-0 md:translate-y-0 md:translate-x-0 md:border-r-0 md:border-white/5'
+                            ? 'h-[55vh] md:h-full w-full md:w-80 rounded-t-2xl md:rounded-none border-t border-white/10 md:border-t-0 md:border-r md:border-white/5' 
+                            : 'h-0 md:h-full w-full md:w-0 rounded-t-2xl md:rounded-none border-t-0 md:border-r-0'
                     }`}
                 >
                     <button 
@@ -141,7 +141,7 @@ export default function App() {
                     </div>
                 </aside>
                 
-                <div className="flex-1 bg-[#0a0c10] relative flex items-center justify-center overflow-hidden z-10 min-w-0">
+                <div className="order-1 md:order-2 flex-1 bg-[#0a0c10] relative flex items-center justify-center overflow-hidden z-10 min-w-0">
                     <div className="absolute inset-0 z-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
                     
                     {/* Left Panel Toggle (Canvas) */}
