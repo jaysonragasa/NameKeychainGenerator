@@ -5,7 +5,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Download } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Download, X } from 'lucide-react';
 import ThreeCanvas from './components/ThreeCanvas';
 import Controls from './components/Controls';
 import { KeychainParams } from './lib/keychainLogic';
@@ -66,11 +66,25 @@ export default function App() {
     }, [params]);
 
     const [isExporting, setIsExporting] = useState(false);
-    const [leftOpen, setLeftOpen] = useState(true);
-    const [rightOpen, setRightOpen] = useState(true);
+    const [leftOpen, setLeftOpen] = useState(window.innerWidth > 768);
+    const [rightOpen, setRightOpen] = useState(window.innerWidth > 768);
     const [showDonation, setShowDonation] = useState(false);
     const [dim, setDim] = useState({ w: 0, l: 0, h: 0, v: 0 });
     const groupRef = useRef<THREE.Group | null>(null);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth <= 768) {
+                setLeftOpen(false);
+                setRightOpen(false);
+            } else {
+                setLeftOpen(true);
+                setRightOpen(true);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const handleExport = (format: 'stl' | '3mf') => {
         if (!groupRef.current) return;
@@ -97,24 +111,32 @@ export default function App() {
 
     return (
         <div className="h-screen w-full bg-[#0f1115] text-slate-200 flex flex-col font-sans overflow-hidden">
-            <nav className="h-16 px-8 flex flex-none items-center justify-between bg-[#16191f] border-b border-white/5 z-30 relative">
+            <nav className="h-14 md:h-16 px-4 md:px-8 flex flex-none items-center justify-between bg-[#16191f] border-b border-white/5 z-30 relative">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-                        <span className="font-black text-black text-sm">KL</span>
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-cyan-500 rounded flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                        <span className="font-black text-black text-xs md:text-sm">KL</span>
                     </div>
-                    <h1 className="text-lg font-semibold tracking-tight text-white">Keylab<span className="text-slate-500 font-normal">3D</span></h1>
+                    <h1 className="text-base md:text-lg font-semibold tracking-tight text-white">Keylab<span className="text-slate-500 font-normal">3D</span></h1>
                 </div>
-                <div className="flex items-center gap-6 text-sm font-medium">
-                    <span className="text-cyan-400 cursor-default border-b-2 border-cyan-400 py-5">Generator</span>
+                <div className="flex items-center gap-6 text-xs md:text-sm font-medium">
+                    <span className="text-cyan-400 cursor-default border-b-2 border-cyan-400 py-4 md:py-5">Generator</span>
                 </div>
             </nav>
             <main className="flex-1 flex overflow-hidden relative">
                 <aside 
-                    className={`bg-[#16191f] border-white/5 flex flex-col overflow-hidden transition-[width,min-width,border] duration-300 ease-in-out relative z-20 shadow-2xl ${
-                        leftOpen ? 'w-80 min-w-[20rem] border-r' : 'w-0 min-w-0 border-r-0'
+                    className={`bg-[#16191f] flex flex-col overflow-hidden transition-all duration-300 ease-in-out absolute md:relative z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-2xl bottom-0 left-0 w-full h-[55vh] rounded-t-2xl md:bottom-auto md:h-full md:rounded-none ${
+                        leftOpen 
+                            ? 'translate-y-0 border-t border-white/10 md:w-80 md:border-t-0 md:border-r md:border-white/5 md:translate-x-0' 
+                            : 'translate-y-full border-t-0 md:w-0 md:translate-y-0 md:translate-x-0 md:border-r-0 md:border-white/5'
                     }`}
                 >
-                    <div className="w-80 min-w-[20rem] p-6 h-full overflow-y-auto">
+                    <button 
+                        onClick={() => setLeftOpen(false)}
+                        className="md:hidden absolute top-4 right-4 z-50 p-2 bg-[#0a0c10] border border-white/10 rounded-lg text-slate-400 hover:text-white shadow-lg"
+                    >
+                        <X size={18} />
+                    </button>
+                    <div className="w-full md:w-80 p-6 pt-14 md:pt-6 h-full overflow-y-auto">
                         <Controls params={params} setParams={setParams} />
                     </div>
                 </aside>
@@ -122,19 +144,19 @@ export default function App() {
                 <div className="flex-1 bg-[#0a0c10] relative flex items-center justify-center overflow-hidden z-10 min-w-0">
                     <div className="absolute inset-0 z-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
                     
-                    {/* Left Panel Toggle */}
+                    {/* Left Panel Toggle (Canvas) */}
                     <button 
                         onClick={() => setLeftOpen(!leftOpen)}
-                        className="absolute left-4 top-4 z-20 p-2.5 bg-[#16191f]/80 backdrop-blur border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-white shadow-lg"
+                        className={`absolute left-4 top-4 z-50 p-2.5 bg-[#16191f]/90 backdrop-blur border border-white/10 rounded-lg hover:bg-white/10 transition-colors ${leftOpen ? 'text-cyan-400' : 'text-slate-400 hover:text-white'} shadow-lg`}
                         title={leftOpen ? "Close Controls" : "Open Controls"}
                     >
                         {leftOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
                     </button>
 
-                    {/* Right Panel Toggle */}
+                    {/* Right Panel Toggle (Canvas) */}
                     <button 
                         onClick={() => setRightOpen(!rightOpen)}
-                        className="absolute right-4 top-4 z-20 p-2.5 bg-[#16191f]/80 backdrop-blur border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-white shadow-lg"
+                        className={`absolute right-4 top-4 z-50 p-2.5 bg-[#16191f]/90 backdrop-blur border border-white/10 rounded-lg hover:bg-white/10 transition-colors ${rightOpen ? 'text-cyan-400' : 'text-slate-400 hover:text-white'} shadow-lg`}
                         title={rightOpen ? "Close Export" : "Open Export"}
                     >
                         {rightOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
@@ -171,11 +193,17 @@ export default function App() {
                 </div>
 
                 <aside 
-                    className={`bg-[#16191f] border-white/5 flex flex-col overflow-hidden transition-[width,min-width,border] duration-300 ease-in-out relative z-20 shadow-2xl ${
-                        rightOpen ? 'w-72 min-w-[18rem] border-l' : 'w-0 min-w-0 border-l-0'
+                    className={`bg-[#16191f] border-white/5 flex flex-col overflow-hidden transition-all duration-300 ease-in-out absolute md:relative z-40 shadow-2xl h-full right-0 ${
+                        rightOpen ? 'w-72 max-w-[85vw] border-l translate-x-0' : 'w-72 max-w-[85vw] border-l-0 translate-x-full md:w-0 md:min-w-0 md:translate-x-0'
                     }`}
                 >
-                    <div className="w-72 min-w-[18rem] p-6 h-full flex flex-col justify-between">
+                    <button 
+                        onClick={() => setRightOpen(false)}
+                        className="md:hidden absolute top-4 left-4 z-50 p-2 bg-[#0a0c10] border border-white/10 rounded-lg text-slate-400 hover:text-white shadow-lg"
+                    >
+                        <PanelRightClose size={18} />
+                    </button>
+                    <div className="w-72 max-w-[85vw] p-6 pt-16 md:pt-6 h-full flex flex-col justify-between overflow-y-auto">
                         <div className="space-y-6">
                             <div className="p-4 bg-cyan-500/5 border border-cyan-500/10 rounded-lg">
                                 <h4 className="text-xs font-bold text-cyan-400 uppercase mb-2 flex items-center gap-2">
@@ -192,7 +220,7 @@ export default function App() {
                                 </ul>
                             </div>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-3 mt-4 md:mt-0">
                             <button 
                                 onClick={() => handleExport('stl')}
                                 className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] flex items-center justify-center gap-2"
