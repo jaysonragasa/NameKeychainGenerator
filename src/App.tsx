@@ -36,6 +36,7 @@ export default function App() {
     const [isExporting, setIsExporting] = useState(false);
     const [leftOpen, setLeftOpen] = useState(true);
     const [rightOpen, setRightOpen] = useState(true);
+    const [dim, setDim] = useState({ w: 0, l: 0, h: 0, v: 0 });
     const groupRef = useRef<THREE.Group | null>(null);
 
     const handleExport = () => {
@@ -105,7 +106,18 @@ export default function App() {
                     <div className="w-full h-full cursor-grab active:cursor-grabbing relative z-10">
                         <ThreeCanvas 
                             params={params} 
-                            onGroupReady={(group) => { groupRef.current = group; }} 
+                            onGroupReady={(group) => { 
+                                groupRef.current = group; 
+                                const box = new THREE.Box3().setFromObject(group);
+                                const size = new THREE.Vector3();
+                                box.getSize(size);
+                                setDim({ 
+                                    w: size.x, 
+                                    l: size.y, 
+                                    h: size.z,
+                                    v: (size.x * size.y * size.z * 0.7) / 1000
+                                });
+                            }} 
                         />
                     </div>
                     {isExporting && (
@@ -134,8 +146,11 @@ export default function App() {
                                     Print Specs
                                 </h4>
                                 <ul className="text-[11px] space-y-1.5 text-slate-400 font-mono">
-                                    <li>Est. Time: ~45min</li>
-                                    <li>Volume: ~12cm³</li>
+                                    <li>Width: {dim.w.toFixed(1)} mm ({(dim.w / 25.4).toFixed(2)}")</li>
+                                    <li>Length: {dim.l.toFixed(1)} mm ({(dim.l / 25.4).toFixed(2)}")</li>
+                                    <li>Thickness: {dim.h.toFixed(1)} mm ({(dim.h / 25.4).toFixed(2)}")</li>
+                                    <li>Est. Time: ~{Math.max(5, Math.round(dim.v * 4.5))} min</li>
+                                    <li>Volume: ~{dim.v.toFixed(1)} cm³</li>
                                     <li>Format: Standard STL</li>
                                 </ul>
                             </div>
