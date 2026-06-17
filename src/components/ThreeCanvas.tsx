@@ -76,8 +76,10 @@ export default function ThreeCanvas({ params, onGroupReady }: ThreeCanvasProps) 
     return (
         <Canvas 
             shadows 
+            dpr={[1, 2]}
+            gl={{ antialias: true }}
             onCreated={({ gl }) => {
-                gl.shadowMap.type = THREE.PCFShadowMap;
+                gl.shadowMap.type = THREE.PCFSoftShadowMap;
             }}
             camera={{ position: [0, 40, 60], fov: 40 }}
         >
