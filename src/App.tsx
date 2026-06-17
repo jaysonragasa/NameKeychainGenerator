@@ -12,7 +12,7 @@ import { KeychainParams } from './lib/keychainLogic';
 import { exportToSTL } from './lib/exportSTL';
 
 const defaultParams: KeychainParams = {
-    text: 'Name',
+    text: 'Pogi<3',
     textScale: 15,
     textThickness: 3,
     baseThickness: 3.5,
@@ -24,6 +24,7 @@ const defaultParams: KeychainParams = {
     cornerRadius: 0,
     baseStyle: 'flat',
     baseType: 'contour',
+    ringPosition: 'LeftCenter',
     fontUrl: 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json',
     baseColor: '#87ceeb',
     textColor: '#ffff00',

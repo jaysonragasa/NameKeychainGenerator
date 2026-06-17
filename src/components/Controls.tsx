@@ -87,7 +87,7 @@ export default function Controls({ params, setParams }: ControlsProps) {
                     name="text" 
                     value={params.text} 
                     onChange={handleChange}
-                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono text-sm uppercase"
+                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono text-sm"
                     maxLength={15}
                 />
             </section>
@@ -193,6 +193,25 @@ export default function Controls({ params, setParams }: ControlsProps) {
                     value={params.ringOuter} onChange={handleChange} 
                     className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
                 />
+            </section>
+
+            <section>
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Ring Position</label>
+                <select 
+                    name="ringPosition" 
+                    value={params.ringPosition} 
+                    onChange={handleChange}
+                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono mb-2"
+                >
+                    <option value="TopLeft">Top Left</option>
+                    <option value="TopCenter">Top Center</option>
+                    <option value="TopRight">Top Right</option>
+                    <option value="RightCenter">Right Center</option>
+                    <option value="BottomRight">Bottom Right</option>
+                    <option value="BottomCenter">Bottom Center</option>
+                    <option value="BottomLeft">Bottom Left</option>
+                    <option value="LeftCenter">Left Center</option>
+                </select>
             </section>
 
             <section>

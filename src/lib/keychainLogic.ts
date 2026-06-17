@@ -34,6 +34,7 @@ export interface KeychainParams {
     cornerRadius: number;
     baseStyle: 'flat' | 'beveled' | 'framed';
     baseType: 'contour' | 'pill';
+    ringPosition: 'TopLeft' | 'TopCenter' | 'TopRight' | 'RightCenter' | 'BottomRight' | 'BottomCenter' | 'BottomLeft' | 'LeftCenter';
     fontUrl: string;
     baseColor: string;
     textColor: string;
@@ -71,7 +72,6 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     let baseGeo: THREE.ExtrudeGeometry;
     let borderGeo: THREE.ExtrudeGeometry | null = null;
     let minX = Infinity;
-    let ringCy = 0;
 
     if (params.baseType === 'pill') {
         const w = textW + params.paddingX * 2;
@@ -81,7 +81,6 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         const x = -w / 2;
         const y = -h / 2;
         minX = x;
-        ringCy = 0;
 
         const drawRoundedRect = (target: THREE.Shape | THREE.Path, bx: number, by: number, bw: number, bh: number, br: number) => {
             target.moveTo(bx + br, by);
@@ -147,7 +146,6 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
 
         const co = new ClipperLib.ClipperOffset();
         co.AddPaths(subj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
-        
         const solution = new ClipperLib.Paths();
         co.Execute(solution, params.paddingX * SCALE);
 
@@ -161,6 +159,63 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
             }
         });
 
+        // Bridge disconnected outers
+        if (outers.length > 1) {
+            // Compute bounds for each outer
+            const bounds = outers.map(outer => {
+                let minXx = Infinity, maxXx = -Infinity;
+                let minYy = Infinity, maxYy = -Infinity;
+                outer.forEach((p: any) => {
+                    minXx = Math.min(minXx, p.X);
+                    maxXx = Math.max(maxXx, p.X);
+                    minYy = Math.min(minYy, p.Y);
+                    maxYy = Math.max(maxYy, p.Y);
+                });
+                return { minXx, maxXx, minYy, maxYy, cy: (minYy + maxYy) / 2, outer };
+            });
+
+            bounds.sort((a, b) => a.minXx - b.minXx);
+
+            const bridgePaths = new ClipperLib.Paths();
+            // keep the original outers
+            outers.forEach(o => bridgePaths.push(o));
+
+            // Create a linking rectangle between adjacent outers
+            for (let i = 0; i < bounds.length - 1; i++) {
+                const b1 = bounds[i];
+                const b2 = bounds[i+1];
+                
+                // If they are separated horizontally
+                if (b2.minXx > b1.maxXx - 10) {
+                    const bw = Math.max((b1.maxYy - b1.minYy) * 0.3, (b2.maxYy - b2.minYy) * 0.3); // Bridge height
+                    const cy = (b1.cy + b2.cy) / 2;
+                    const bridgeRect = [
+                        { X: b1.maxXx - 50, Y: Math.round(cy - bw / 2) },
+                        { X: b2.minXx + 50, Y: Math.round(cy - bw / 2) },
+                        { X: b2.minXx + 50, Y: Math.round(cy + bw / 2) },
+                        { X: b1.maxXx - 50, Y: Math.round(cy + bw / 2) }
+                    ];
+                    bridgePaths.push(bridgeRect);
+                }
+            }
+
+            // Union them all together
+            const c = new ClipperLib.Clipper();
+            c.AddPaths(bridgePaths, ClipperLib.PolyType.ptSubject, true);
+            const unionSolution = new ClipperLib.Paths();
+            c.Execute(ClipperLib.ClipType.ctUnion, unionSolution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+
+            outers.length = 0;
+            // The union might still have holes if the bridge created some, but typically we just grab the new outers
+            unionSolution.forEach((path: any) => {
+                if (ClipperLib.Clipper.Orientation(path)) {
+                    outers.push(path);
+                } else {
+                    holes.push(path);
+                }
+            });
+        }
+
         const baseShapes: THREE.Shape[] = [];
         outers.forEach((outerPath: any) => {
             const shape = new THREE.Shape();
@@ -169,7 +224,6 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
                 else shape.lineTo(p.X / SCALE, p.Y / SCALE);
                 if (p.X / SCALE < minX) {
                     minX = p.X / SCALE;
-                    ringCy = p.Y / SCALE;
                 }
             });
             shape.closePath();
@@ -235,9 +289,37 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
 
     const ringGeo = new THREE.ExtrudeGeometry(ringShape, extrudeSettings);
     
-    // Link ring to the left side
-    const cx = minX - params.ringOuter + params.overlap;
-    ringGeo.translate(cx, ringCy, 0);
+    // Link ring dynamically based on ringPosition
+    const posAttr = baseGeo.attributes.position;
+    const dir = new THREE.Vector2(-1, 0); // default LeftCenter
+    switch (params.ringPosition) {
+        case 'TopLeft': dir.set(-1, 1).normalize(); break;
+        case 'TopCenter': dir.set(0, 1); break;
+        case 'TopRight': dir.set(1, 1).normalize(); break;
+        case 'RightCenter': dir.set(1, 0); break;
+        case 'BottomRight': dir.set(1, -1).normalize(); break;
+        case 'BottomCenter': dir.set(0, -1); break;
+        case 'BottomLeft': dir.set(-1, -1).normalize(); break;
+        case 'LeftCenter': dir.set(-1, 0); break;
+    }
+
+    let maxDot = -Infinity;
+    const anchor = new THREE.Vector2();
+
+    for (let i = 0; i < posAttr.count; i++) {
+        const vx = posAttr.getX(i);
+        const vy = posAttr.getY(i);
+        const dot = vx * dir.x + vy * dir.y;
+        if (dot > maxDot) {
+            maxDot = dot;
+            anchor.set(vx, vy);
+        }
+    }
+
+    const cx = anchor.x + dir.x * (params.ringOuter - params.overlap);
+    const cy = anchor.y + dir.y * (params.ringOuter - params.overlap);
+
+    ringGeo.translate(cx, cy, 0);
 
     return { textGeo, baseGeo, ringGeo, borderGeo };
 }
