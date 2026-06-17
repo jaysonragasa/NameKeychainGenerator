@@ -24,7 +24,7 @@ const defaultParams: KeychainParams = {
     cornerRadius: 0,
     baseStyle: 'flat',
     baseType: 'contour',
-    ringPosition: 'LeftCenter',
+    ringPosition: 180,
     fontUrl: 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json',
     baseColor: '#87ceeb',
     textColor: '#ffff00',

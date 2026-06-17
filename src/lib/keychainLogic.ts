@@ -34,7 +34,7 @@ export interface KeychainParams {
     cornerRadius: number;
     baseStyle: 'flat' | 'beveled' | 'framed';
     baseType: 'contour' | 'pill';
-    ringPosition: 'TopLeft' | 'TopCenter' | 'TopRight' | 'RightCenter' | 'BottomRight' | 'BottomCenter' | 'BottomLeft' | 'LeftCenter';
+    ringPosition: number;
     fontUrl: string;
     baseColor: string;
     textColor: string;
@@ -73,6 +73,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     let baseGeo: THREE.ExtrudeGeometry;
     let borderGeo: THREE.ExtrudeGeometry | null = null;
     let minX = Infinity;
+    let baseShapesForRing: THREE.Shape[] = [];
 
     if (params.baseType === 'pill') {
         const w = textW + params.paddingX * 2;
@@ -98,6 +99,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         const baseShape = new THREE.Shape();
         drawRoundedRect(baseShape, x, y, w, h, r);
         baseGeo = new THREE.ExtrudeGeometry(baseShape, extrudeSettings);
+        baseShapesForRing.push(baseShape);
 
         if (params.baseStyle === 'framed') {
             const borderGeoShape = new THREE.Shape();
@@ -252,6 +254,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
             baseShapes.push(shape);
         });
 
+        baseShapesForRing = baseShapes;
         baseGeo = new THREE.ExtrudeGeometry(baseShapes, extrudeSettings);
 
         if (params.baseStyle === 'framed') {
@@ -301,37 +304,65 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
 
     const ringGeo = new THREE.ExtrudeGeometry(ringShape, extrudeSettings);
     
-    // Link ring dynamically based on ringPosition
-    const posAttr = baseGeo.attributes.position;
-    const dir = new THREE.Vector2(-1, 0); // default LeftCenter
-    switch (params.ringPosition) {
-        case 'TopLeft': dir.set(-1, 1).normalize(); break;
-        case 'TopCenter': dir.set(0, 1); break;
-        case 'TopRight': dir.set(1, 1).normalize(); break;
-        case 'RightCenter': dir.set(1, 0); break;
-        case 'BottomRight': dir.set(1, -1).normalize(); break;
-        case 'BottomCenter': dir.set(0, -1); break;
-        case 'BottomLeft': dir.set(-1, -1).normalize(); break;
-        case 'LeftCenter': dir.set(-1, 0); break;
-    }
+    // Link ring dynamically based on ringPosition angle (ray from center)
+    baseGeo.computeBoundingBox();
+    const bbGeo = baseGeo.boundingBox!;
+    const center_x = (bbGeo.min.x + bbGeo.max.x) / 2;
+    const center_y = (bbGeo.min.y + bbGeo.max.y) / 2;
 
-    let maxDot = -Infinity;
+    const rad = params.ringPosition * Math.PI / 180;
+    const dx = Math.cos(rad);
+    const dy = Math.sin(rad);
+
+    let maxT = -1;
     const anchor = new THREE.Vector2();
 
-    for (let i = 0; i < posAttr.count; i++) {
-        const vx = posAttr.getX(i);
-        const vy = posAttr.getY(i);
-        const dot = vx * dir.x + vy * dir.y;
-        if (dot > maxDot) {
-            maxDot = dot;
-            anchor.set(vx, vy);
+    const outerPolygons = baseShapesForRing.map(s => s.extractPoints(4).shape);
+    for (const poly of outerPolygons) {
+        for (let i = 0; i < poly.length; i++) {
+            const A = poly[i];
+            const B = poly[(i + 1) % poly.length];
+            
+            const v1x = center_x - A.x;
+            const v1y = center_y - A.y;
+            const v2x = B.x - A.x;
+            const v2y = B.y - A.y;
+            const v3x = -dy;
+            const v3y = dx;
+            
+            const dot = v2x * v3x + v2y * v3y;
+            if (Math.abs(dot) > 0.000001) {
+                const t = (v2x * v1y - v2y * v1x) / dot;
+                const u = (v1x * v3x + v1y * v3y) / dot;
+                if (t >= 0 && u >= 0 && u <= 1) {
+                    if (t > maxT) {
+                        maxT = t;
+                        anchor.set(center_x + t * dx, center_y + t * dy);
+                    }
+                }
+            }
         }
     }
 
-    const cx = anchor.x + dir.x * (params.ringOuter - params.overlap);
-    const cy = anchor.y + dir.y * (params.ringOuter - params.overlap);
+    if (maxT === -1) {
+        // Fallback to extreme point method if ray missed
+        let maxDot = -Infinity;
+        const posAttr = baseGeo.attributes.position;
+        for (let i = 0; i < posAttr.count; i++) {
+            const vx = posAttr.getX(i);
+            const vy = posAttr.getY(i);
+            const d = vx * dx + vy * dy;
+            if (d > maxDot) {
+                maxDot = d;
+                anchor.set(vx, vy);
+            }
+        }
+    }
 
-    ringGeo.translate(cx, cy, 0);
+    const ringCx = anchor.x + dx * (params.ringOuter - params.overlap);
+    const ringCy = anchor.y + dy * (params.ringOuter - params.overlap);
+
+    ringGeo.translate(ringCx, ringCy, 0);
 
     return { textGeo, baseGeo, ringGeo, borderGeo };
 }
