@@ -8,7 +8,7 @@ const font = new FontLoader().parse(fontJson);
 
 const shapes = font.generateShapes('ADVENTURE', 10);
 const SCALE = 100;
-const subj = new ClipperLib.Paths();
+const subj = [];
 
 shapes.forEach(shape => {
     const points = shape.extractPoints(4);
@@ -18,7 +18,7 @@ shapes.forEach(shape => {
 
 const co = new ClipperLib.ClipperOffset();
 co.AddPaths(subj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
-const solution = new ClipperLib.Paths();
+const solution = [];
 co.Execute(solution, 3 * SCALE);
 
 solution.forEach((path, idx) => {

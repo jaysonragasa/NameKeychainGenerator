@@ -1,5 +1,6 @@
 import React from 'react';
 import { KeychainParams } from '../lib/keychainLogic';
+import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 
 interface ControlsProps {
     params: KeychainParams;
@@ -7,7 +8,7 @@ interface ControlsProps {
 }
 
 export default function Controls({ params, setParams }: ControlsProps) {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
         setParams({
             ...params,
@@ -119,13 +120,38 @@ export default function Controls({ params, setParams }: ControlsProps) {
 
             <section>
                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Text</label>
+                <div className="bg-[#0a0c10] border border-white/10 rounded-lg overflow-hidden shadow-inner focus-within:border-cyan-500/50 transition-colors">
+                    <textarea 
+                        name="text" 
+                        value={params.text} 
+                        onChange={handleChange}
+                        className="w-full bg-transparent px-4 py-3 text-white focus:outline-none font-mono text-sm resize-y min-h-[80px]"
+                        placeholder="Enter text here..."
+                    />
+                    <div className="bg-[#16191f] border-t border-white/10 px-2 py-2 flex items-center justify-between">
+                        <div className="flex gap-1">
+                            <button onClick={() => setParams({...params, textBold: !params.textBold})} className={`p-1.5 rounded transition-colors ${params.textBold ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`} title="Bold"><Bold size={14} /></button>
+                            <button onClick={() => setParams({...params, textItalic: !params.textItalic})} className={`p-1.5 rounded transition-colors ${params.textItalic ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`} title="Italic"><Italic size={14} /></button>
+                            <button onClick={() => setParams({...params, textUnderline: !params.textUnderline})} className={`p-1.5 rounded transition-colors ${params.textUnderline ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`} title="Underline"><Underline size={14} /></button>
+                        </div>
+                        <div className="flex gap-1 border-l border-white/10 pl-2">
+                            <button onClick={() => setParams({...params, textAlign: 'left'})} className={`p-1.5 rounded transition-colors ${params.textAlign === 'left' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`} title="Align Left"><AlignLeft size={14} /></button>
+                            <button onClick={() => setParams({...params, textAlign: 'center'})} className={`p-1.5 rounded transition-colors ${params.textAlign === 'center' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`} title="Align Center"><AlignCenter size={14} /></button>
+                            <button onClick={() => setParams({...params, textAlign: 'right'})} className={`p-1.5 rounded transition-colors ${params.textAlign === 'right' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`} title="Align Right"><AlignRight size={14} /></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div className="flex justify-between items-center mb-3">
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Line Spacing</label>
+                    <span className="text-xs font-mono text-cyan-400">{params.lineSpacing}x</span>
+                </div>
                 <input 
-                    type="text" 
-                    name="text" 
-                    value={params.text} 
-                    onChange={handleChange}
-                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono text-sm"
-                    maxLength={15}
+                    type="range" name="lineSpacing" min="0.5" max="3" step="0.1" 
+                    value={params.lineSpacing} onChange={handleChange} 
+                    className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
                 />
             </section>
 

@@ -97,7 +97,7 @@ export default function ThreeCanvas({ params, onGroupReady }: ThreeCanvasProps) 
             camera={{ position: [0, 40, 60], fov: 40 }}
         >
             <ambientLight intensity={0.6} />
-            <hemisphereLight skyColor="#ffffff" groundColor="#4fd1c5" intensity={0.2} />
+            <hemisphereLight args={['#ffffff', '#4fd1c5', 0.2]} />
             <directionalLight 
                 position={[10, 20, 10]} 
                 intensity={1} 
