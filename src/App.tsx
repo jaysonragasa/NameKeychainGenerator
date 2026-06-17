@@ -28,7 +28,7 @@ const defaultParams: KeychainParams = {
     baseStyle: 'flat',
     baseType: 'contour',
     ringPosition: 153,
-    fontUrl: 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json',
+    fontUrl: 'https://raw.githubusercontent.com/google/fonts/main/ofl/pacifico/Pacifico-Regular.ttf',
     baseColor: '#87ceeb',
     textColor: '#ffff00',
     frameColor: '#ff0000',
