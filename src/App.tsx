@@ -65,6 +65,7 @@ export default function App() {
     const [isExporting, setIsExporting] = useState(false);
     const [leftOpen, setLeftOpen] = useState(true);
     const [rightOpen, setRightOpen] = useState(true);
+    const [showDonation, setShowDonation] = useState(false);
     const [dim, setDim] = useState({ w: 0, l: 0, h: 0, v: 0 });
     const groupRef = useRef<THREE.Group | null>(null);
 
@@ -203,6 +204,28 @@ export default function App() {
                                 <Download size={18} />
                                 Download .3MF
                             </button>
+                            <div className="pt-4 border-t border-white/10 text-center relative">
+                                <p className="text-[10px] text-slate-400 mb-2 font-medium">If you think this tool helped you</p>
+                                <button 
+                                    onClick={() => setShowDonation(!showDonation)}
+                                    className="w-full bg-[#16191f] border border-cyan-500/30 hover:bg-cyan-500/10 text-cyan-400 font-bold py-2 rounded-lg transition-all text-xs shadow-inner"
+                                >
+                                    Send gcash 'yah
+                                </button>
+                                {showDonation && (
+                                    <div className="absolute bottom-[110%] left-0 right-0 p-3 bg-white rounded-xl shadow-2xl z-50 border-[3px] border-cyan-500">
+                                        <div className="relative">
+                                            <button 
+                                                onClick={() => setShowDonation(false)}
+                                                className="absolute -top-6 -right-6 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center font-bold shadow-lg"
+                                            >
+                                                ✕
+                                            </button>
+                                            <img src="/gcash_qr.png" alt="GCash QR Code" className="w-full h-auto rounded" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </aside>
