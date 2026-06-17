@@ -124,20 +124,48 @@ export default function Controls({ params, setParams }: ControlsProps) {
                     onChange={handleChange}
                     className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono mb-6"
                 >
-                    <option value="flat">Standard Edge (Flat)</option>
-                    <option value="beveled">Beveled Edges</option>
+                    <option value="flat">Flat</option>
+                    <option value="beveled">Beveled</option>
                     <option value="framed">Raised Frame</option>
                 </select>
+            </section>
 
-                {params.baseType === 'pill' && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div>
-                            <div className="flex justify-between items-center mb-3">
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Corner Radius</label>
-                                <span className="text-xs font-mono text-cyan-400">{params.cornerRadius} mm</span>
-                            </div>
-                            <input 
-                                type="range" name="cornerRadius" min="0" max="25" step="1" 
+            {params.baseStyle === 'framed' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <section>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Frame Height</label>
+                            <span className="text-xs font-mono text-cyan-400">{params.frameHeight} mm</span>
+                        </div>
+                        <input 
+                            type="range" name="frameHeight" min="0" max="10" step="0.1" 
+                            value={params.frameHeight} onChange={handleChange} 
+                            className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        />
+                    </section>
+                    <section>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Frame Thickness</label>
+                            <span className="text-xs font-mono text-cyan-400">{params.frameThickness} mm</span>
+                        </div>
+                        <input 
+                            type="range" name="frameThickness" min="0.5" max="5" step="0.1" 
+                            value={params.frameThickness} onChange={handleChange} 
+                            className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        />
+                    </section>
+                </div>
+            )}
+
+            {params.baseType === 'pill' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Corner Radius</label>
+                            <span className="text-xs font-mono text-cyan-400">{params.cornerRadius} mm</span>
+                        </div>
+                        <input 
+                            type="range" name="cornerRadius" min="0" max="25" step="1" 
                                 value={params.cornerRadius} onChange={handleChange} 
                                 className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
                             />
@@ -155,7 +183,6 @@ export default function Controls({ params, setParams }: ControlsProps) {
                         </div>
                     </div>
                 )}
-            </section>
 
             <section>
                 <div className="flex justify-between items-center mb-3">

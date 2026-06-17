@@ -1,13 +1,14 @@
 import * as THREE from 'three';
-import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import ClipperLib from 'clipper-lib';
+import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import * as ClipperLib from 'clipper-lib';
 
+// Font loading cache
 const fontCache = new Map<string, Font>();
 const fontPromises = new Map<string, Promise<Font>>();
 
-export const loadFont = (url: string): Promise<Font> => {
-    if (fontCache.has(url)) return Promise.resolve(fontCache.get(url)!);
+export const loadFont = async (url: string): Promise<Font> => {
+    if (fontCache.has(url)) return fontCache.get(url)!;
     if (fontPromises.has(url)) return fontPromises.get(url)!;
 
     const promise = new Promise<Font>((resolve, reject) => {
@@ -40,6 +41,8 @@ export interface KeychainParams {
     textColor: string;
     frameColor: string;
     contourSmoothing: number;
+    frameHeight: number;
+    frameThickness: number;
 }
 
 export function generateKeychainGeometries(font: Font, params: KeychainParams) {
@@ -78,6 +81,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         const w = textW + params.paddingX * 2;
         const h = Math.max(textH + params.paddingY * 2, params.ringOuter * 2);
         const r = Math.min(params.cornerRadius, w / 2, h / 2);
+        
         const x = -w / 2;
         const y = -h / 2;
 
@@ -318,34 +322,59 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     let borderGeo: THREE.ExtrudeGeometry | null = null;
 
     if (params.baseStyle === 'framed') {
+        // 1. Collect Original Solid paths (Subject)
+        const frameSubj = new ClipperLib.Paths();
+        finalPaths.forEach((p: any) => frameSubj.push(p));
+
+        // 2. Create Shrunk Solid (Clip)
+        const frameCo = new ClipperLib.ClipperOffset();
+        frameCo.AddPaths(frameSubj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+        const shrunkSolid = new ClipperLib.Paths();
+        frameCo.Execute(shrunkSolid, -params.frameThickness * SCALE);
+
+        // 3. Difference: Original Solid - Shrunk Solid
+        const clipperDiffFrame = new ClipperLib.Clipper();
+        clipperDiffFrame.AddPaths(frameSubj, ClipperLib.PolyType.ptSubject, true);
+        clipperDiffFrame.AddPaths(shrunkSolid, ClipperLib.PolyType.ptClip, true);
+        const frameResult = new ClipperLib.Paths();
+        clipperDiffFrame.Execute(ClipperLib.ClipType.ctDifference, frameResult, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+
+        // 4. Convert frameResult to THREE.Shapes
+        const frameOuters: any[] = [];
+        const frameHoles: any[] = [];
+        frameResult.forEach((path: any) => {
+            if (ClipperLib.Clipper.Orientation(path)) frameOuters.push(path);
+            else frameHoles.push(path);
+        });
+
         const borderShapes: THREE.Shape[] = [];
-        finalOuters.forEach((outerPath: any) => {
+        frameOuters.forEach((outerPath: any) => {
             const borderShape = new THREE.Shape();
             outerPath.forEach((p: any, idx: number) => {
-                if (idx === 0) borderShape.moveTo(p.X / SCALE, p.Y / SCALE);
-                else borderShape.lineTo(p.X / SCALE, p.Y / SCALE);
+                const x = p.X / SCALE;
+                const y = p.Y / SCALE;
+                if (idx === 0) borderShape.moveTo(x, y);
+                else borderShape.lineTo(x, y);
             });
             borderShape.closePath();
-            
-            const frameSubj = new ClipperLib.Paths();
-            frameSubj.push(outerPath);
-            finalHoles.forEach((holePath: any) => {
-                if (ClipperLib.Clipper.PointInPolygon(holePath[0], outerPath) !== 0) {
-                    frameSubj.push(holePath);
-                }
-            });
 
-            const frameCo = new ClipperLib.ClipperOffset();
-            frameCo.AddPaths(frameSubj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
-            const frameSolution = new ClipperLib.Paths();
-            frameCo.Execute(frameSolution, -1.5 * SCALE); 
-            
-            frameSolution.forEach((innerPath: any) => {
-                if (!ClipperLib.Clipper.Orientation(innerPath)) {
+            frameHoles.forEach((holePath: any) => {
+                if (ClipperLib.Clipper.PointInPolygon(holePath[0], outerPath) !== 0) {
+                    // Check winding order to satisfy Three.js requirements
+                    const isOuterClockwise = THREE.ShapeUtils.isClockWise(outerPath.map((p: any) => new THREE.Vector2(p.X, p.Y)));
+                    const isInnerClockwise = THREE.ShapeUtils.isClockWise(holePath.map((p: any) => new THREE.Vector2(p.X, p.Y)));
+                    
+                    let pathToAdd = holePath;
+                    if (isOuterClockwise === isInnerClockwise) {
+                        pathToAdd = [...holePath].reverse();
+                    }
+
                     const innerHole = new THREE.Path();
-                    innerPath.forEach((p: any, idx: number) => {
-                        if (idx === 0) innerHole.moveTo(p.X / SCALE, p.Y / SCALE);
-                        else innerHole.lineTo(p.X / SCALE, p.Y / SCALE);
+                    pathToAdd.forEach((p: any, idx: number) => {
+                        const x = p.X / SCALE;
+                        const y = p.Y / SCALE;
+                        if (idx === 0) innerHole.moveTo(x, y);
+                        else innerHole.lineTo(x, y);
                     });
                     innerHole.closePath();
                     borderShape.holes.push(innerHole);
@@ -355,10 +384,11 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         });
 
         borderGeo = new THREE.ExtrudeGeometry(borderShapes, {
-            depth: params.baseThickness + 1.2,
+            depth: params.frameHeight,
             bevelEnabled: false,
             curveSegments: 12
         });
+        borderGeo.translate(0, 0, params.baseThickness);
     }
 
     return { textGeo, baseGeo, borderGeo };

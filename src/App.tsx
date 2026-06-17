@@ -28,8 +28,10 @@ const defaultParams: KeychainParams = {
     fontUrl: 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json',
     baseColor: '#87ceeb',
     textColor: '#ffff00',
-    frameColor: '#87ceeb',
-    contourSmoothing: 2
+    frameColor: '#ff0000',
+    contourSmoothing: 1.5,
+    frameHeight: 1.2,
+    frameThickness: 1.5
 };
 
 export default function App() {
