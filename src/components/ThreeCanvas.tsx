@@ -106,7 +106,7 @@ export default function ThreeCanvas({ params, onGroupReady }: ThreeCanvasProps) 
             />
             <spotLight position={[0, 10, 0]} angle={0.5} penumbra={1} intensity={0.5} color="#4fd1c5" castShadow={false} />
             <Environment preset="city" />
-            <Bounds fit clip observe margin={1.5}>
+            <Bounds fit margin={1.5}>
                 <Center position={[0, 0, 0]}>
                     <KeychainModel params={params} onGroupReady={onGroupReady} />
                 </Center>
