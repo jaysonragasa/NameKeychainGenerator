@@ -87,16 +87,12 @@ export default function App() {
             <nav className="h-16 px-8 flex flex-none items-center justify-between bg-[#16191f] border-b border-white/5 z-30 relative">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-cyan-500 rounded flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-                        <span className="font-black text-black text-sm">KF</span>
+                        <span className="font-black text-black text-sm">KL</span>
                     </div>
-                    <h1 className="text-lg font-semibold tracking-tight text-white">KeyForge <span className="text-slate-500 font-normal">3D</span></h1>
+                    <h1 className="text-lg font-semibold tracking-tight text-white">Keylab<span className="text-slate-500 font-normal">3D</span></h1>
                 </div>
                 <div className="flex items-center gap-6 text-sm font-medium">
                     <span className="text-cyan-400 cursor-default border-b-2 border-cyan-400 py-5">Generator</span>
-                    <span className="text-slate-400 hover:text-white cursor-pointer transition-colors">Templates</span>
-                    <span className="text-slate-400 hover:text-white cursor-pointer transition-colors">Gallery</span>
-                    <div className="h-4 w-px bg-white/10 ml-2"></div>
-                    <button className="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-md transition-colors">My Account</button>
                 </div>
             </nav>
             <main className="flex-1 flex overflow-hidden relative">
@@ -195,11 +191,9 @@ export default function App() {
                     </div>
                 </aside>
             </main>
-            <footer className="h-10 bg-[#16191f] border-t border-white/5 px-8 flex items-center justify-between text-[10px] uppercase tracking-widest font-bold text-slate-600 z-30 relative">
-                <div>Status: Ready for Export</div>
+            <footer className="h-10 bg-[#16191f] border-t border-white/5 px-8 flex items-center justify-end text-[10px] uppercase tracking-widest font-bold text-slate-600 z-30 relative">
                 <div className="flex gap-6">
                     <span>WebGL Acceleration Active</span>
-                    <span>Unit: Metric (mm)</span>
                 </div>
             </footer>
         </div>
