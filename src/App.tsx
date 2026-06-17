@@ -34,7 +34,10 @@ const defaultParams: KeychainParams = {
     frameColor: '#ff0000',
     contourSmoothing: 1.5,
     frameHeight: 1.2,
-    frameThickness: 1.5
+    frameThickness: 1.5,
+    showBuildPlate: true,
+    buildPlateWidth: 180,
+    buildPlateLength: 180
 };
 
 export default function App() {

@@ -112,25 +112,47 @@ export default function ThreeCanvas({ params, onGroupReady }: ThreeCanvasProps) 
                 </Center>
             </Bounds>
             
-            {/* Floor for shadow catching */}
-            <mesh position={[0, -4, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-                <planeGeometry args={[500, 500]} />
-                <shadowMaterial opacity={0.15} />
-            </mesh>
-            
-            <Grid 
-                position={[0, -4.01, 0]} 
-                args={[100, 100]} 
-                cellSize={1} 
-                cellThickness={0.5} 
-                cellColor="#2a303c" 
-                sectionSize={5} 
-                sectionThickness={1} 
-                sectionColor="#3d4657" 
-                fadeDistance={80} 
-                fadeStrength={1.5}
-                infiniteGrid
-            />
+            {params.showBuildPlate ? (
+                <group position={[0, -1, 0]}>
+                    <mesh receiveShadow>
+                        <boxGeometry args={[params.buildPlateWidth, 2, params.buildPlateLength]} />
+                        <meshStandardMaterial color="#1f2229" roughness={0.8} />
+                    </mesh>
+                    <Grid 
+                        position={[0, 1.01, 0]} 
+                        args={[params.buildPlateWidth, params.buildPlateLength]} 
+                        cellSize={10} 
+                        cellThickness={0.5} 
+                        cellColor="#2a303c" 
+                        sectionSize={50} 
+                        sectionThickness={1.5} 
+                        sectionColor="#4fd1c5" 
+                        fadeDistance={Math.max(params.buildPlateWidth, params.buildPlateLength)} 
+                        fadeStrength={1}
+                        infiniteGrid={false}
+                    />
+                </group>
+            ) : (
+                <>
+                    <mesh position={[0, -4, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+                        <planeGeometry args={[500, 500]} />
+                        <shadowMaterial opacity={0.15} />
+                    </mesh>
+                    <Grid 
+                        position={[0, -4.01, 0]} 
+                        args={[100, 100]} 
+                        cellSize={1} 
+                        cellThickness={0.5} 
+                        cellColor="#2a303c" 
+                        sectionSize={5} 
+                        sectionThickness={1} 
+                        sectionColor="#3d4657" 
+                        fadeDistance={80} 
+                        fadeStrength={1.5}
+                        infiniteGrid
+                    />
+                </>
+            )}
 
             <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2 + 0.1} />
         </Canvas>

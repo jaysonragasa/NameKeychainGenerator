@@ -56,6 +56,9 @@ export interface KeychainParams {
     contourSmoothing: number;
     frameHeight: number;
     frameThickness: number;
+    showBuildPlate: boolean;
+    buildPlateWidth: number;
+    buildPlateLength: number;
 }
 
 export function generateKeychainGeometries(font: Font, params: KeychainParams) {

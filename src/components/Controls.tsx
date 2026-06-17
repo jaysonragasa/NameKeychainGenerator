@@ -294,6 +294,52 @@ export default function Controls({ params, setParams }: ControlsProps) {
                     className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
                 />
             </section>
+            <section className="space-y-4 pt-4 border-t border-white/5">
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Virtual Build Plate</label>
+                    <input 
+                        type="checkbox" 
+                        name="showBuildPlate" 
+                        checked={params.showBuildPlate} 
+                        onChange={(e) => setParams({...params, showBuildPlate: e.target.checked})} 
+                        className="w-4 h-4 rounded border-white/10 bg-[#0a0c10] text-cyan-500 focus:ring-cyan-500/50 focus:ring-offset-[#16191f] cursor-pointer"
+                    />
+                </div>
+                {params.showBuildPlate && (
+                    <>
+                        <div className="flex gap-2 mt-2 mb-3">
+                            <button 
+                                onClick={() => setParams({...params, buildPlateWidth: 180, buildPlateLength: 180})}
+                                className={`flex-1 py-1 text-[10px] uppercase font-bold rounded-md transition-colors shadow-inner ${params.buildPlateWidth === 180 && params.buildPlateLength === 180 ? 'bg-cyan-500 text-black' : 'bg-[#16191f] text-slate-400 hover:text-white border border-cyan-500/30'}`}
+                            >
+                                180 x 180
+                            </button>
+                            <button 
+                                onClick={() => setParams({...params, buildPlateWidth: 250, buildPlateLength: 250})}
+                                className={`flex-1 py-1 text-[10px] uppercase font-bold rounded-md transition-colors shadow-inner ${params.buildPlateWidth === 250 && params.buildPlateLength === 250 ? 'bg-cyan-500 text-black' : 'bg-[#16191f] text-slate-400 hover:text-white border border-cyan-500/30'}`}
+                            >
+                                250 x 250
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-[10px] uppercase font-bold text-slate-500">Width</label>
+                                <span className="text-[10px] font-mono text-cyan-400">{params.buildPlateWidth} mm</span>
+                            </div>
+                            <input type="range" name="buildPlateWidth" min="50" max="500" value={params.buildPlateWidth} onChange={handleChange} className="w-full accent-cyan-500" />
+                        </div>
+                        <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-[10px] uppercase font-bold text-slate-500">Length</label>
+                                <span className="text-[10px] font-mono text-cyan-400">{params.buildPlateLength} mm</span>
+                            </div>
+                            <input type="range" name="buildPlateLength" min="50" max="500" value={params.buildPlateLength} onChange={handleChange} className="w-full accent-cyan-500" />
+                        </div>
+                    </div>
+                    </>
+                )}
+            </section>
         </div>
     );
 }

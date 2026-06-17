@@ -2,11 +2,14 @@ import * as THREE from 'three';
 import { STLExporter } from 'three/examples/jsm/exporters/STLExporter.js';
 
 export function exportToSTL(meshGroup: THREE.Group, filename: string) {
-    const exporter = new STLExporter();
-    // Ensure all matrices are updated
-    meshGroup.updateMatrixWorld(true);
+    const clone = meshGroup.clone();
+    clone.rotation.set(0, 0, 0);
+    clone.position.set(0, 0, 0);
+    clone.scale.set(1, 1, 1);
+    clone.updateMatrixWorld(true);
     
-    const stlString = exporter.parse(meshGroup);
+    const exporter = new STLExporter();
+    const stlString = exporter.parse(clone);
     
     const blob = new Blob([stlString], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
