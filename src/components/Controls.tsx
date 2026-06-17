@@ -183,6 +183,20 @@ export default function Controls({ params, setParams }: ControlsProps) {
                 />
             </section>
             
+            {params.baseType === 'contour' && (
+                <section className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex justify-between items-center mb-3">
+                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Contour Smoothing</label>
+                        <span className="text-xs font-mono text-cyan-400">{params.contourSmoothing} mm</span>
+                    </div>
+                    <input 
+                        type="range" name="contourSmoothing" min="0" max="10" step="0.5" 
+                        value={params.contourSmoothing} onChange={handleChange} 
+                        className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                </section>
+            )}
+            
             <section>
                 <div className="flex justify-between items-center mb-3">
                     <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Ring Outer Radius</label>

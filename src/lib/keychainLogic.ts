@@ -39,6 +39,7 @@ export interface KeychainParams {
     baseColor: string;
     textColor: string;
     frameColor: string;
+    contourSmoothing: number;
 }
 
 export function generateKeychainGeometries(font: Font, params: KeychainParams) {
@@ -146,8 +147,19 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
 
         const co = new ClipperLib.ClipperOffset();
         co.AddPaths(subj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
-        const solution = new ClipperLib.Paths();
-        co.Execute(solution, params.paddingX * SCALE);
+        
+        const smoothVal = params.contourSmoothing || 0;
+        let solution = new ClipperLib.Paths();
+        
+        if (smoothVal > 0) {
+            const inflated = new ClipperLib.Paths();
+            co.Execute(inflated, (params.paddingX + smoothVal) * SCALE);
+            const co2 = new ClipperLib.ClipperOffset();
+            co2.AddPaths(inflated, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+            co2.Execute(solution, -smoothVal * SCALE);
+        } else {
+            co.Execute(solution, params.paddingX * SCALE);
+        }
 
         const outers: any[] = [];
         const holes: any[] = [];
