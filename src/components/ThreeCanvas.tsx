@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Center, Environment, Grid } from '@react-three/drei';
+import { OrbitControls, Center, Environment, Grid, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { loadFont, generateKeychainGeometries, KeychainParams } from '../lib/keychainLogic';
@@ -12,12 +12,20 @@ interface ThreeCanvasProps {
 
 const KeychainModel: React.FC<{ params: KeychainParams, onGroupReady: (group: THREE.Group) => void }> = ({ params, onGroupReady }) => {
     const [font, setFont] = useState<Font | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
     const groupRef = useRef<THREE.Group>(null);
 
     useEffect(() => {
         let active = true;
+        setIsLoading(true);
         loadFont(params.fontUrl).then((f) => {
-            if (active) setFont(f);
+            if (active) {
+                setFont(f);
+                setIsLoading(false);
+            }
+        }).catch(err => {
+            if (active) setIsLoading(false);
+            console.error("Failed to load font:", err);
         });
         return () => { active = false; };
     }, [params.fontUrl]);
@@ -41,7 +49,16 @@ const KeychainModel: React.FC<{ params: KeychainParams, onGroupReady: (group: TH
     if (!font || !geometries) return null;
 
     return (
-        <group ref={groupRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <group>
+            {isLoading && (
+                <Html center zIndexRange={[100, 0]}>
+                    <div className="flex flex-col items-center justify-center space-y-3 p-4 bg-[#0a0c10]/90 rounded-xl backdrop-blur-md border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.2)] w-48 pointer-events-none">
+                        <div className="w-8 h-8 border-[3px] border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+                        <p className="text-cyan-400 font-mono text-xs uppercase tracking-widest animate-pulse">Loading Font...</p>
+                    </div>
+                </Html>
+            )}
+            <group ref={groupRef} rotation={[-Math.PI / 2, 0, 0]}>
             {/* Base Block */}
             <mesh geometry={geometries.baseGeo} castShadow receiveShadow>
                 <meshStandardMaterial color={params.baseColor} roughness={0.6} />
@@ -63,6 +80,7 @@ const KeychainModel: React.FC<{ params: KeychainParams, onGroupReady: (group: TH
             >
                 <meshStandardMaterial color={params.textColor} roughness={0.2} metalness={0.1} />
             </mesh>
+        </group>
         </group>
     );
 };

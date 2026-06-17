@@ -36,19 +36,41 @@ export default function Controls({ params, setParams }: ControlsProps) {
                     name="fontUrl" 
                     value={params.fontUrl} 
                     onChange={handleChange}
-                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono"
+                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono mb-2"
                 >
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json">Helvetiker</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json">Helvetiker Bold</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/optimer_regular.typeface.json">Optimer</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/optimer_bold.typeface.json">Optimer Bold</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/gentilis_regular.typeface.json">Gentilis</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/gentilis_bold.typeface.json">Gentilis Bold</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/droid/droid_sans_regular.typeface.json">Droid Sans</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/droid/droid_sans_bold.typeface.json">Droid Sans Bold</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/droid/droid_serif_regular.typeface.json">Droid Serif</option>
-                    <option value="https://unpkg.com/three@0.160.0/examples/fonts/droid/droid_serif_bold.typeface.json">Droid Serif Bold</option>
+                    <optgroup label="Three.js Defaults">
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json">Helvetiker</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json">Helvetiker Bold</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/optimer_regular.typeface.json">Optimer</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/optimer_bold.typeface.json">Optimer Bold</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/gentilis_regular.typeface.json">Gentilis</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/gentilis_bold.typeface.json">Gentilis Bold</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/droid/droid_sans_regular.typeface.json">Droid Sans</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/droid/droid_sans_bold.typeface.json">Droid Sans Bold</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/droid/droid_serif_regular.typeface.json">Droid Serif</option>
+                        <option value="https://unpkg.com/three@0.160.0/examples/fonts/droid/droid_serif_bold.typeface.json">Droid Serif Bold</option>
+                    </optgroup>
+                    <optgroup label="Google Fonts (TTF)">
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/roboto/Roboto-Regular.ttf">Roboto</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/roboto/Roboto-Black.ttf">Roboto Black</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/pacifico/Pacifico-Regular.ttf">Pacifico</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/lobster/Lobster-Regular.ttf">Lobster</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/caveat/Caveat-Regular.ttf">Caveat</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/righteous/Righteous-Regular.ttf">Righteous</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/oswald/Oswald-Regular.ttf">Oswald</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/bangers/Bangers-Regular.ttf">Bangers</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/bungee/Bungee-Regular.ttf">Bungee</option>
+                        <option value="https://raw.githubusercontent.com/google/fonts/main/ofl/pressstart2p/PressStart2P-Regular.ttf">Press Start 2P</option>
+                    </optgroup>
                 </select>
+                <input
+                    type="text"
+                    name="fontUrl"
+                    value={params.fontUrl}
+                    onChange={handleChange}
+                    placeholder="Or paste a custom .ttf URL here..."
+                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-2 text-[10px] text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono opacity-50 focus:opacity-100 hover:opacity-100"
+                />
             </section>
 
             <section className={`grid gap-2 ${params.baseStyle === 'framed' ? 'grid-cols-3' : 'grid-cols-2'}`}>

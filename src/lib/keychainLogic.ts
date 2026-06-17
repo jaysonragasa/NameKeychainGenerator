@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TTFLoader } from 'three/examples/jsm/loaders/TTFLoader.js';
 import * as ClipperLib from 'clipper-lib';
 
 // Font loading cache
@@ -12,11 +13,23 @@ export const loadFont = async (url: string): Promise<Font> => {
     if (fontPromises.has(url)) return fontPromises.get(url)!;
 
     const promise = new Promise<Font>((resolve, reject) => {
-        new FontLoader().load(url,
-            (font) => { fontCache.set(url, font); resolve(font); },
-            undefined,
-            (error) => { fontPromises.delete(url); reject(error); }
-        );
+        if (url.toLowerCase().endsWith('.ttf')) {
+            new TTFLoader().load(url,
+                (json) => {
+                    const font = new Font(json);
+                    fontCache.set(url, font);
+                    resolve(font);
+                },
+                undefined,
+                (error) => { fontPromises.delete(url); reject(error); }
+            );
+        } else {
+            new FontLoader().load(url,
+                (font) => { fontCache.set(url, font); resolve(font); },
+                undefined,
+                (error) => { fontPromises.delete(url); reject(error); }
+            );
+        }
     });
     fontPromises.set(url, promise);
     return promise;
