@@ -116,7 +116,7 @@ export default function App() {
                     <div className="w-6 h-6 md:w-8 md:h-8 bg-cyan-500 rounded flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.3)]">
                         <span className="font-black text-black text-xs md:text-sm">KL</span>
                     </div>
-                    <h1 className="text-base md:text-lg font-semibold tracking-tight text-white">Keylab<span className="text-slate-500 font-normal">3D</span></h1>
+                    <h1 className="text-base md:text-lg font-semibold tracking-tight text-white">KeychainLab<span className="text-slate-500 font-normal">3D</span></h1>
                 </div>
                 <div className="flex items-center gap-6 text-xs md:text-sm font-medium">
                     <span className="text-cyan-400 cursor-default border-b-2 border-cyan-400 py-4 md:py-5">Generator</span>
