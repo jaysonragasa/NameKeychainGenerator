@@ -1,0 +1,6 @@
+{
+  "name": "3D Keychain Generator",
+  "description": "Generate, customize, and export custom 3D printed keychains using Three.js and React Fiber.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
