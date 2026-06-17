@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Center, Environment, Grid, Html } from '@react-three/drei';
+import { OrbitControls, Center, Environment, Grid, Html, Bounds } from '@react-three/drei';
 import * as THREE from 'three';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { loadFont, generateKeychainGeometries, KeychainParams } from '../lib/keychainLogic';
@@ -106,9 +106,11 @@ export default function ThreeCanvas({ params, onGroupReady }: ThreeCanvasProps) 
             />
             <spotLight position={[0, 10, 0]} angle={0.5} penumbra={1} intensity={0.5} color="#4fd1c5" castShadow={false} />
             <Environment preset="city" />
-            <Center position={[0, 0, 0]}>
-                <KeychainModel params={params} onGroupReady={onGroupReady} />
-            </Center>
+            <Bounds fit clip observe margin={1.5}>
+                <Center position={[0, 0, 0]}>
+                    <KeychainModel params={params} onGroupReady={onGroupReady} />
+                </Center>
+            </Bounds>
             
             {/* Floor for shadow catching */}
             <mesh position={[0, -4, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>

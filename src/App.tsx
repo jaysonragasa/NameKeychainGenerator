@@ -14,7 +14,7 @@ import { exportToSTL } from './lib/exportSTL';
 const STORAGE_KEY = 'keyforge-3d-params';
 
 const defaultParams: KeychainParams = {
-    text: 'Pogi<3',
+    text: 'Shiro',
     textScale: 15,
     textThickness: 3,
     baseThickness: 3.5,
@@ -26,7 +26,7 @@ const defaultParams: KeychainParams = {
     cornerRadius: 0,
     baseStyle: 'flat',
     baseType: 'contour',
-    ringPosition: 180,
+    ringPosition: 153,
     fontUrl: 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_bold.typeface.json',
     baseColor: '#87ceeb',
     textColor: '#ffff00',
