@@ -3,13 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Download } from 'lucide-react';
 import ThreeCanvas from './components/ThreeCanvas';
 import Controls from './components/Controls';
 import { KeychainParams } from './lib/keychainLogic';
 import { exportToSTL } from './lib/exportSTL';
+
+const STORAGE_KEY = 'keyforge-3d-params';
 
 const defaultParams: KeychainParams = {
     text: 'Pogi<3',
@@ -35,7 +37,30 @@ const defaultParams: KeychainParams = {
 };
 
 export default function App() {
-    const [params, setParams] = useState<KeychainParams>(defaultParams);
+    const [params, setParams] = useState<KeychainParams>(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.fontUrl && parsed.fontUrl.startsWith('blob:')) {
+                    parsed.fontUrl = defaultParams.fontUrl;
+                }
+                return { ...defaultParams, ...parsed };
+            }
+        } catch (e) {
+            console.error('Failed to load from localStorage', e);
+        }
+        return defaultParams;
+    });
+
+    useEffect(() => {
+        const toSave = { ...params };
+        if (toSave.fontUrl.startsWith('blob:')) {
+            toSave.fontUrl = defaultParams.fontUrl;
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    }, [params]);
+
     const [isExporting, setIsExporting] = useState(false);
     const [leftOpen, setLeftOpen] = useState(true);
     const [rightOpen, setRightOpen] = useState(true);

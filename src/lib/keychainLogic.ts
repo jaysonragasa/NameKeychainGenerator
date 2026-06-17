@@ -13,7 +13,7 @@ export const loadFont = async (url: string): Promise<Font> => {
     if (fontPromises.has(url)) return fontPromises.get(url)!;
 
     const promise = new Promise<Font>((resolve, reject) => {
-        if (url.toLowerCase().endsWith('.ttf')) {
+        if (url.toLowerCase().endsWith('.ttf') || url.startsWith('blob:')) {
             new TTFLoader().load(url,
                 (json) => {
                     const font = new Font(json);

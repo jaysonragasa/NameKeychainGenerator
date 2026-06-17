@@ -7,12 +7,23 @@ interface ControlsProps {
 }
 
 export default function Controls({ params, setParams }: ControlsProps) {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         setParams({
             ...params,
             [name]: type === 'number' || type === 'range' ? parseFloat(value) : value
         });
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            setParams({ ...params, fontUrl: url });
+        }
+        if (e.target) {
+            e.target.value = '';
+        }
     };
 
     return (
@@ -66,11 +77,15 @@ export default function Controls({ params, setParams }: ControlsProps) {
                 <input
                     type="text"
                     name="fontUrl"
-                    value={params.fontUrl}
+                    value={params.fontUrl.startsWith('blob:') ? '' : params.fontUrl}
                     onChange={handleChange}
-                    placeholder="Or paste a custom .ttf URL here..."
-                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-2 text-[10px] text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono opacity-50 focus:opacity-100 hover:opacity-100"
+                    placeholder={params.fontUrl.startsWith('blob:') ? 'Using Local File...' : 'Or paste a custom .ttf URL here...'}
+                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-2 text-[10px] text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono opacity-50 focus:opacity-100 hover:opacity-100 mb-2"
                 />
+                <label className="w-full cursor-pointer bg-[#16191f] border border-cyan-500/30 hover:bg-cyan-500/10 rounded-lg px-4 py-2 flex items-center justify-center text-[10px] uppercase font-bold tracking-widest text-cyan-400 transition-colors shadow-inner">
+                    Upload Local .TTF
+                    <input type="file" accept=".ttf" onChange={handleFileUpload} className="hidden" />
+                </label>
             </section>
 
             <section className={`grid gap-2 ${params.baseStyle === 'framed' ? 'grid-cols-3' : 'grid-cols-2'}`}>
