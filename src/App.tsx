@@ -10,6 +10,7 @@ import ThreeCanvas from './components/ThreeCanvas';
 import Controls from './components/Controls';
 import { KeychainParams } from './lib/keychainLogic';
 import { exportToSTL } from './lib/exportSTL';
+import { exportTo3MFFile } from './lib/export3MF';
 
 const STORAGE_KEY = 'keyforge-3d-params';
 
@@ -67,13 +68,21 @@ export default function App() {
     const [dim, setDim] = useState({ w: 0, l: 0, h: 0, v: 0 });
     const groupRef = useRef<THREE.Group | null>(null);
 
-    const handleExport = () => {
+    const handleExport = (format: 'stl' | '3mf') => {
         if (!groupRef.current) return;
         setIsExporting(true);
         try {
             // A quick timeout to allow UI to update if needed, export might freeze main thread briefly
-            setTimeout(() => {
-                exportToSTL(groupRef.current!, `${params.text || 'keychain'}.stl`);
+            setTimeout(async () => {
+                try {
+                    if (format === 'stl') {
+                        exportToSTL(groupRef.current!, `${params.text || 'keychain'}.stl`);
+                    } else if (format === '3mf') {
+                        await exportTo3MFFile(groupRef.current!, `${params.text || 'keychain'}.3mf`);
+                    }
+                } catch (e) {
+                    console.error("Export failed", e);
+                }
                 setIsExporting(false);
             }, 50);
         } catch (e) {
@@ -151,7 +160,7 @@ export default function App() {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <span>Generating STL File...</span>
+                                <span>Generating Export File...</span>
                             </div>
                         </div>
                     )}
@@ -175,17 +184,24 @@ export default function App() {
                                     <li>Thickness: {dim.h.toFixed(1)} mm ({(dim.h / 25.4).toFixed(2)}")</li>
                                     <li>Est. Time: ~{Math.max(5, Math.round(dim.v * 4.5))} min</li>
                                     <li>Volume: ~{dim.v.toFixed(1)} cm³</li>
-                                    <li>Format: Standard STL</li>
+                                    <li>Format: STL / 3MF</li>
                                 </ul>
                             </div>
                         </div>
                         <div className="space-y-3">
                             <button 
-                                onClick={handleExport}
-                                className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] flex items-center justify-center gap-2"
+                                onClick={() => handleExport('stl')}
+                                className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] flex items-center justify-center gap-2"
                             >
                                 <Download size={18} />
                                 Download .STL
+                            </button>
+                            <button 
+                                onClick={() => handleExport('3mf')}
+                                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] flex items-center justify-center gap-2"
+                            >
+                                <Download size={18} />
+                                Download .3MF
                             </button>
                         </div>
                     </div>
