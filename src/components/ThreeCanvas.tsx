@@ -47,11 +47,6 @@ const KeychainModel: React.FC<{ params: KeychainParams, onGroupReady: (group: TH
                 <meshStandardMaterial color={params.baseColor} roughness={0.6} />
             </mesh>
             
-            {/* Ring Block */}
-            <mesh geometry={geometries.ringGeo} castShadow receiveShadow>
-                <meshStandardMaterial color={params.baseColor} roughness={0.6} />
-            </mesh>
-
             {/* Border Block (Optional) */}
             {geometries.borderGeo && (
                 <mesh geometry={geometries.borderGeo} castShadow receiveShadow>

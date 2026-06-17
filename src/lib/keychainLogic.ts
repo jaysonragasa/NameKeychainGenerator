@@ -43,6 +43,7 @@ export interface KeychainParams {
 }
 
 export function generateKeychainGeometries(font: Font, params: KeychainParams) {
+    const SCALE = 100;
     const textShapes = font.generateShapes(params.text || ' ', params.textScale);
 
     const textGeo = new THREE.ExtrudeGeometry(textShapes, {
@@ -70,21 +71,18 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         curveSegments: 12
     };
 
-    let baseGeo: THREE.ExtrudeGeometry;
-    let borderGeo: THREE.ExtrudeGeometry | null = null;
-    let minX = Infinity;
-    let baseShapesForRing: THREE.Shape[] = [];
-
+    let rawBasePaths = new ClipperLib.Paths();
+    
+    // 1. Generate Raw Base Paths
     if (params.baseType === 'pill') {
         const w = textW + params.paddingX * 2;
         const h = Math.max(textH + params.paddingY * 2, params.ringOuter * 2);
         const r = Math.min(params.cornerRadius, w / 2, h / 2);
-        
         const x = -w / 2;
         const y = -h / 2;
-        minX = x;
 
-        const drawRoundedRect = (target: THREE.Shape | THREE.Path, bx: number, by: number, bw: number, bh: number, br: number) => {
+        const baseShape = new THREE.Shape();
+        const drawRoundedRect = (target: THREE.Shape, bx: number, by: number, bw: number, bh: number, br: number) => {
             target.moveTo(bx + br, by);
             target.lineTo(bx + bw - br, by);
             target.quadraticCurveTo(bx + bw, by, bx + bw, by + br);
@@ -95,49 +93,20 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
             target.lineTo(bx, by + br);
             target.quadraticCurveTo(bx, by, bx + br, by);
         };
-
-        const baseShape = new THREE.Shape();
         drawRoundedRect(baseShape, x, y, w, h, r);
-        baseGeo = new THREE.ExtrudeGeometry(baseShape, extrudeSettings);
-        baseShapesForRing.push(baseShape);
-
-        if (params.baseStyle === 'framed') {
-            const borderGeoShape = new THREE.Shape();
-            drawRoundedRect(borderGeoShape, x, y, w, h, r);
-            
-            const hole = new THREE.Path();
-            const borderThickness = 1.5;
-            const hx = x + borderThickness;
-            const hy = y + borderThickness;
-            const hw = w - borderThickness * 2;
-            const hh = h - borderThickness * 2;
-            const hr = Math.max(0, r - borderThickness);
-            
-            if (hw > 0 && hh > 0) {
-                drawRoundedRect(hole, hx, hy, hw, hh, hr);
-                borderGeoShape.holes.push(hole);
-
-                borderGeo = new THREE.ExtrudeGeometry(borderGeoShape, {
-                    depth: params.baseThickness + 1.2,
-                    bevelEnabled: false,
-                    curveSegments: 12
-                });
-            }
-        }
+        
+        const pts = baseShape.extractPoints(12).shape;
+        const poly = pts.map(p => ({ X: Math.round(p.x * SCALE), Y: Math.round(p.y * SCALE) }));
+        rawBasePaths.push(poly);
     } else {
-        // Contour offset logic via ClipperLib
-        const SCALE = 100;
         const subj = new ClipperLib.Paths();
-
         textShapes.forEach(shape => {
             const points = shape.extractPoints(4);
-            
             const outerObj = points.shape.map(p => ({
                 X: Math.round((p.x + translateX) * SCALE),
                 Y: Math.round((p.y + translateY) * SCALE)
             }));
             subj.push(outerObj);
-            
             points.holes.forEach(hole => {
                 const holeObj = hole.map(p => ({
                     X: Math.round((p.x + translateX) * SCALE),
@@ -146,62 +115,33 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
                 subj.push(holeObj);
             });
         });
-
         const co = new ClipperLib.ClipperOffset();
         co.AddPaths(subj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+        co.Execute(rawBasePaths, params.paddingX * SCALE);
         
-        const smoothVal = params.contourSmoothing || 0;
-        let solution = new ClipperLib.Paths();
-        
-        if (smoothVal > 0) {
-            const inflated = new ClipperLib.Paths();
-            co.Execute(inflated, (params.paddingX + smoothVal) * SCALE);
-            const co2 = new ClipperLib.ClipperOffset();
-            co2.AddPaths(inflated, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
-            co2.Execute(solution, -smoothVal * SCALE);
-        } else {
-            co.Execute(solution, params.paddingX * SCALE);
-        }
-
         const outers: any[] = [];
-        const holes: any[] = [];
-        solution.forEach((path: any) => {
-            if (ClipperLib.Clipper.Orientation(path)) {
-                outers.push(path);
-            } else {
-                holes.push(path);
-            }
+        rawBasePaths.forEach((path: any) => {
+            if (ClipperLib.Clipper.Orientation(path)) outers.push(path);
         });
 
-        // Bridge disconnected outers
         if (outers.length > 1) {
-            // Compute bounds for each outer
             const bounds = outers.map(outer => {
                 let minXx = Infinity, maxXx = -Infinity;
                 let minYy = Infinity, maxYy = -Infinity;
                 outer.forEach((p: any) => {
-                    minXx = Math.min(minXx, p.X);
-                    maxXx = Math.max(maxXx, p.X);
-                    minYy = Math.min(minYy, p.Y);
-                    maxYy = Math.max(maxYy, p.Y);
+                    minXx = Math.min(minXx, p.X); maxXx = Math.max(maxXx, p.X);
+                    minYy = Math.min(minYy, p.Y); maxYy = Math.max(maxYy, p.Y);
                 });
                 return { minXx, maxXx, minYy, maxYy, cy: (minYy + maxYy) / 2, outer };
             });
-
             bounds.sort((a, b) => a.minXx - b.minXx);
-
             const bridgePaths = new ClipperLib.Paths();
-            // keep the original outers
-            outers.forEach(o => bridgePaths.push(o));
+            rawBasePaths.forEach(o => bridgePaths.push(o));
 
-            // Create a linking rectangle between adjacent outers
             for (let i = 0; i < bounds.length - 1; i++) {
-                const b1 = bounds[i];
-                const b2 = bounds[i+1];
-                
-                // If they are separated horizontally
+                const b1 = bounds[i], b2 = bounds[i+1];
                 if (b2.minXx > b1.maxXx - 10) {
-                    const bw = Math.max((b1.maxYy - b1.minYy) * 0.3, (b2.maxYy - b2.minYy) * 0.3); // Bridge height
+                    const bw = Math.max((b1.maxYy - b1.minYy) * 0.3, (b2.maxYy - b2.minYy) * 0.3);
                     const cy = (b1.cy + b2.cy) / 2;
                     const bridgeRect = [
                         { X: b1.maxXx - 50, Y: Math.round(cy - bw / 2) },
@@ -212,121 +152,42 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
                     bridgePaths.push(bridgeRect);
                 }
             }
-
-            // Union them all together
             const c = new ClipperLib.Clipper();
             c.AddPaths(bridgePaths, ClipperLib.PolyType.ptSubject, true);
-            const unionSolution = new ClipperLib.Paths();
-            c.Execute(ClipperLib.ClipType.ctUnion, unionSolution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
-
-            outers.length = 0;
-            // The union might still have holes if the bridge created some, but typically we just grab the new outers
-            unionSolution.forEach((path: any) => {
-                if (ClipperLib.Clipper.Orientation(path)) {
-                    outers.push(path);
-                } else {
-                    holes.push(path);
-                }
-            });
-        }
-
-        const baseShapes: THREE.Shape[] = [];
-        outers.forEach((outerPath: any) => {
-            const shape = new THREE.Shape();
-            outerPath.forEach((p: any, idx: number) => {
-                if (idx === 0) shape.moveTo(p.X / SCALE, p.Y / SCALE);
-                else shape.lineTo(p.X / SCALE, p.Y / SCALE);
-                if (p.X / SCALE < minX) {
-                    minX = p.X / SCALE;
-                }
-            });
-            shape.closePath();
-
-            holes.forEach((holePath: any) => {
-                const hole = new THREE.Path();
-                holePath.forEach((p: any, idx: number) => {
-                    if (idx === 0) hole.moveTo(p.X / SCALE, p.Y / SCALE);
-                    else hole.lineTo(p.X / SCALE, p.Y / SCALE);
-                });
-                hole.closePath();
-                shape.holes.push(hole);
-            });
-            baseShapes.push(shape);
-        });
-
-        baseShapesForRing = baseShapes;
-        baseGeo = new THREE.ExtrudeGeometry(baseShapes, extrudeSettings);
-
-        if (params.baseStyle === 'framed') {
-            const borderShapes: THREE.Shape[] = [];
-            outers.forEach((outerPath: any) => {
-                const borderShape = new THREE.Shape();
-                outerPath.forEach((p: any, idx: number) => {
-                    if (idx === 0) borderShape.moveTo(p.X / SCALE, p.Y / SCALE);
-                    else borderShape.lineTo(p.X / SCALE, p.Y / SCALE);
-                });
-                borderShape.closePath();
-                
-                const frameSubj = new ClipperLib.Paths();
-                frameSubj.push(outerPath);
-                const frameCo = new ClipperLib.ClipperOffset();
-                frameCo.AddPaths(frameSubj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
-                const frameSolution = new ClipperLib.Paths();
-                frameCo.Execute(frameSolution, -1.5 * SCALE); 
-                
-                frameSolution.forEach((innerPath: any) => {
-                    const innerHole = new THREE.Path();
-                    innerPath.forEach((p: any, idx: number) => {
-                        if (idx === 0) innerHole.moveTo(p.X / SCALE, p.Y / SCALE);
-                        else innerHole.lineTo(p.X / SCALE, p.Y / SCALE);
-                    });
-                    innerHole.closePath();
-                    borderShape.holes.push(innerHole);
-                });
-                borderShapes.push(borderShape);
-            });
-
-            borderGeo = new THREE.ExtrudeGeometry(borderShapes, {
-                depth: params.baseThickness + 1.2,
-                bevelEnabled: false,
-                curveSegments: 12
-            });
+            rawBasePaths = new ClipperLib.Paths();
+            c.Execute(ClipperLib.ClipType.ctUnion, rawBasePaths, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
         }
     }
 
-    // Ring Dimensions
-    const ringShape = new THREE.Shape();
-    ringShape.absarc(0, 0, params.ringOuter, 0, Math.PI * 2, false);
-    const holePath = new THREE.Path();
-    holePath.absarc(0, 0, params.ringInner, 0, Math.PI * 2, true);
-    Math.PI * 2;
-    ringShape.holes.push(holePath);
-
-    const ringGeo = new THREE.ExtrudeGeometry(ringShape, extrudeSettings);
-    
-    // Link ring dynamically based on ringPosition angle (ray from center)
-    baseGeo.computeBoundingBox();
-    const bbGeo = baseGeo.boundingBox!;
-    const center_x = (bbGeo.min.x + bbGeo.max.x) / 2;
-    const center_y = (bbGeo.min.y + bbGeo.max.y) / 2;
+    // 2. Calculate Ring Position
+    let minXx = Infinity, maxXx = -Infinity, minYy = Infinity, maxYy = -Infinity;
+    rawBasePaths.forEach((path: any) => {
+        path.forEach((p: any) => {
+            minXx = Math.min(minXx, p.X); maxXx = Math.max(maxXx, p.X);
+            minYy = Math.min(minYy, p.Y); maxYy = Math.max(maxYy, p.Y);
+        });
+    });
+    const cx = (minXx + maxXx) / 2;
+    const cy = (minYy + maxYy) / 2;
 
     const rad = params.ringPosition * Math.PI / 180;
     const dx = Math.cos(rad);
     const dy = Math.sin(rad);
 
     let maxT = -1;
-    const anchor = new THREE.Vector2();
+    let anchorX = cx;
+    let anchorY = cy;
 
-    const outerPolygons = baseShapesForRing.map(s => s.extractPoints(4).shape);
-    for (const poly of outerPolygons) {
-        for (let i = 0; i < poly.length; i++) {
-            const A = poly[i];
-            const B = poly[(i + 1) % poly.length];
+    rawBasePaths.forEach((path: any) => {
+        if (!ClipperLib.Clipper.Orientation(path)) return;
+        for (let i = 0; i < path.length; i++) {
+            const A = path[i];
+            const B = path[(i + 1) % path.length];
             
-            const v1x = center_x - A.x;
-            const v1y = center_y - A.y;
-            const v2x = B.x - A.x;
-            const v2y = B.y - A.y;
+            const v1x = cx - A.X;
+            const v1y = cy - A.Y;
+            const v2x = B.X - A.X;
+            const v2y = B.Y - A.Y;
             const v3x = -dy;
             const v3y = dx;
             
@@ -337,32 +198,168 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
                 if (t >= 0 && u >= 0 && u <= 1) {
                     if (t > maxT) {
                         maxT = t;
-                        anchor.set(center_x + t * dx, center_y + t * dy);
+                        anchorX = cx + t * dx;
+                        anchorY = cy + t * dy;
                     }
                 }
             }
         }
-    }
+    });
 
     if (maxT === -1) {
-        // Fallback to extreme point method if ray missed
         let maxDot = -Infinity;
-        const posAttr = baseGeo.attributes.position;
-        for (let i = 0; i < posAttr.count; i++) {
-            const vx = posAttr.getX(i);
-            const vy = posAttr.getY(i);
-            const d = vx * dx + vy * dy;
-            if (d > maxDot) {
-                maxDot = d;
-                anchor.set(vx, vy);
-            }
-        }
+        rawBasePaths.forEach((path: any) => {
+            if (!ClipperLib.Clipper.Orientation(path)) return;
+            path.forEach((p: any) => {
+                const d = p.X * dx + p.Y * dy;
+                if (d > maxDot) {
+                    maxDot = d;
+                    anchorX = p.X;
+                    anchorY = p.Y;
+                }
+            });
+        });
     }
 
-    const ringCx = anchor.x + dx * (params.ringOuter - params.overlap);
-    const ringCy = anchor.y + dy * (params.ringOuter - params.overlap);
+    const ringOuterPx = params.ringOuter * SCALE;
+    const overlapPx = params.overlap * SCALE;
+    const ringCx = anchorX + dx * (ringOuterPx - overlapPx);
+    const ringCy = anchorY + dy * (ringOuterPx - overlapPx);
 
-    ringGeo.translate(ringCx, ringCy, 0);
+    // 3. Union Ring Outer
+    const ringOuterPath: any[] = [];
+    const segments = 64;
+    for (let i = 0; i < segments; i++) {
+        const a = (i / segments) * Math.PI * 2;
+        ringOuterPath.push({
+            X: Math.round(ringCx + Math.cos(a) * ringOuterPx),
+            Y: Math.round(ringCy + Math.sin(a) * ringOuterPx)
+        });
+    }
 
-    return { textGeo, baseGeo, ringGeo, borderGeo };
+    const clipperUnion = new ClipperLib.Clipper();
+    clipperUnion.AddPaths(rawBasePaths, ClipperLib.PolyType.ptSubject, true);
+    clipperUnion.AddPath(ringOuterPath, ClipperLib.PolyType.ptClip, true);
+    const unionedPaths = new ClipperLib.Paths();
+    clipperUnion.Execute(ClipperLib.ClipType.ctUnion, unionedPaths, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+
+    // 4. Apply Morphological Smoothing
+    let smoothedPaths = unionedPaths;
+    const smoothVal = params.contourSmoothing || 0;
+    if (smoothVal > 0) {
+        const inflateCo = new ClipperLib.ClipperOffset();
+        inflateCo.AddPaths(unionedPaths, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+        const inflated = new ClipperLib.Paths();
+        inflateCo.Execute(inflated, smoothVal * SCALE);
+
+        const deflateCo = new ClipperLib.ClipperOffset();
+        deflateCo.AddPaths(inflated, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+        smoothedPaths = new ClipperLib.Paths();
+        deflateCo.Execute(smoothedPaths, -smoothVal * SCALE);
+    }
+
+    // 5. Subtract Holes
+    const ringInnerPx = params.ringInner * SCALE;
+    const ringInnerPath: any[] = [];
+    for (let i = 0; i < segments; i++) {
+        const a = (i / segments) * Math.PI * 2;
+        ringInnerPath.push({
+            X: Math.round(ringCx + Math.cos(a) * ringInnerPx),
+            Y: Math.round(ringCy + Math.sin(a) * ringInnerPx)
+        });
+    }
+
+    const clipperDiff = new ClipperLib.Clipper();
+    clipperDiff.AddPaths(smoothedPaths, ClipperLib.PolyType.ptSubject, true);
+    clipperDiff.AddPath(ringInnerPath, ClipperLib.PolyType.ptClip, true);
+    const finalPaths = new ClipperLib.Paths();
+    clipperDiff.Execute(ClipperLib.ClipType.ctDifference, finalPaths, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+
+    // 6. Generate Geometries
+    const finalOuters: any[] = [];
+    const finalHoles: any[] = [];
+    finalPaths.forEach((path: any) => {
+        if (ClipperLib.Clipper.Orientation(path)) {
+            finalOuters.push(path);
+        } else {
+            finalHoles.push(path);
+        }
+    });
+
+    const baseShapes: THREE.Shape[] = [];
+    finalOuters.forEach((outerPath: any) => {
+        const shape = new THREE.Shape();
+        outerPath.forEach((p: any, idx: number) => {
+            const x = p.X / SCALE;
+            const y = p.Y / SCALE;
+            if (idx === 0) shape.moveTo(x, y);
+            else shape.lineTo(x, y);
+        });
+        shape.closePath();
+
+        finalHoles.forEach((holePath: any) => {
+            const hole = new THREE.Path();
+            let isInside = ClipperLib.Clipper.PointInPolygon(holePath[0], outerPath) !== 0;
+            if (isInside) {
+                holePath.forEach((p: any, idx: number) => {
+                    const x = p.X / SCALE;
+                    const y = p.Y / SCALE;
+                    if (idx === 0) hole.moveTo(x, y);
+                    else hole.lineTo(x, y);
+                });
+                hole.closePath();
+                shape.holes.push(hole);
+            }
+        });
+        baseShapes.push(shape);
+    });
+
+    const baseGeo = new THREE.ExtrudeGeometry(baseShapes, extrudeSettings);
+    let borderGeo: THREE.ExtrudeGeometry | null = null;
+
+    if (params.baseStyle === 'framed') {
+        const borderShapes: THREE.Shape[] = [];
+        finalOuters.forEach((outerPath: any) => {
+            const borderShape = new THREE.Shape();
+            outerPath.forEach((p: any, idx: number) => {
+                if (idx === 0) borderShape.moveTo(p.X / SCALE, p.Y / SCALE);
+                else borderShape.lineTo(p.X / SCALE, p.Y / SCALE);
+            });
+            borderShape.closePath();
+            
+            const frameSubj = new ClipperLib.Paths();
+            frameSubj.push(outerPath);
+            finalHoles.forEach((holePath: any) => {
+                if (ClipperLib.Clipper.PointInPolygon(holePath[0], outerPath) !== 0) {
+                    frameSubj.push(holePath);
+                }
+            });
+
+            const frameCo = new ClipperLib.ClipperOffset();
+            frameCo.AddPaths(frameSubj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+            const frameSolution = new ClipperLib.Paths();
+            frameCo.Execute(frameSolution, -1.5 * SCALE); 
+            
+            frameSolution.forEach((innerPath: any) => {
+                if (!ClipperLib.Clipper.Orientation(innerPath)) {
+                    const innerHole = new THREE.Path();
+                    innerPath.forEach((p: any, idx: number) => {
+                        if (idx === 0) innerHole.moveTo(p.X / SCALE, p.Y / SCALE);
+                        else innerHole.lineTo(p.X / SCALE, p.Y / SCALE);
+                    });
+                    innerHole.closePath();
+                    borderShape.holes.push(innerHole);
+                }
+            });
+            borderShapes.push(borderShape);
+        });
+
+        borderGeo = new THREE.ExtrudeGeometry(borderShapes, {
+            depth: params.baseThickness + 1.2,
+            bevelEnabled: false,
+            curveSegments: 12
+        });
+    }
+
+    return { textGeo, baseGeo, borderGeo };
 }
