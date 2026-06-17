@@ -123,8 +123,10 @@ export default function App() {
                 </div>
             </nav>
             <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+                
+                {/* Controls Panel (Left, Bottom Sheet on Mobile) */}
                 <aside 
-                    className={`bg-[#16191f] flex flex-col overflow-hidden transition-[height,width] duration-300 ease-in-out z-40 order-2 md:order-1 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-2xl flex-shrink-0 ${
+                    className={`bg-[#16191f] flex flex-col overflow-hidden transition-[height,width] duration-300 ease-in-out z-40 order-2 md:order-1 relative shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-2xl flex-shrink-0 ${
                         leftOpen 
                             ? 'h-[55vh] md:h-full w-full md:w-80 rounded-t-2xl md:rounded-none border-t border-white/10 md:border-t-0 md:border-r md:border-white/5' 
                             : 'h-0 md:h-full w-full md:w-0 rounded-t-2xl md:rounded-none border-t-0 md:border-r-0'
@@ -144,7 +146,7 @@ export default function App() {
                 <div className="order-1 md:order-2 flex-1 bg-[#0a0c10] relative flex items-center justify-center overflow-hidden z-10 min-w-0">
                     <div className="absolute inset-0 z-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
                     
-                    {/* Left Panel Toggle (Canvas) */}
+                    {/* Left Canvas Toggle (Controls) */}
                     <button 
                         onClick={() => setLeftOpen(!leftOpen)}
                         className={`absolute left-4 top-4 z-50 p-2.5 bg-[#16191f]/90 backdrop-blur border border-white/10 rounded-lg hover:bg-white/10 transition-colors ${leftOpen ? 'text-cyan-400' : 'text-slate-400 hover:text-white'} shadow-lg`}
@@ -153,7 +155,7 @@ export default function App() {
                         {leftOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
                     </button>
 
-                    {/* Right Panel Toggle (Canvas) */}
+                    {/* Right Canvas Toggle (Export) */}
                     <button 
                         onClick={() => setRightOpen(!rightOpen)}
                         className={`absolute right-4 top-4 z-50 p-2.5 bg-[#16191f]/90 backdrop-blur border border-white/10 rounded-lg hover:bg-white/10 transition-colors ${rightOpen ? 'text-cyan-400' : 'text-slate-400 hover:text-white'} shadow-lg`}
@@ -192,8 +194,9 @@ export default function App() {
                     )}
                 </div>
 
+                {/* Export Panel (Right) */}
                 <aside 
-                    className={`bg-[#16191f] border-white/5 flex flex-col overflow-hidden transition-all duration-300 ease-in-out absolute md:relative z-40 shadow-2xl h-full right-0 ${
+                    className={`bg-[#16191f] border-white/5 flex flex-col overflow-hidden transition-all duration-300 ease-in-out absolute md:relative z-40 shadow-2xl h-full right-0 order-3 md:order-3 ${
                         rightOpen ? 'w-72 max-w-[85vw] border-l translate-x-0' : 'w-72 max-w-[85vw] border-l-0 translate-x-full md:w-0 md:min-w-0 md:translate-x-0'
                     }`}
                 >
