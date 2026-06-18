@@ -401,7 +401,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         return path;
     };
 
-    const ringAngle = Math.atan2(dy, dx);
+    const ringAngle = Math.abs(dy) > Math.abs(dx) ? Math.PI / 2 : 0;
     // 3. Union Ring Outer
     const ringOuterPath = createRingPath(ringCx, ringCy, ringOuterPx, params.ringType, ringAngle);
 
