@@ -354,6 +354,18 @@ export default function Controls({ params, setParams }: ControlsProps) {
 
             <section>
                 <div className="flex justify-between items-center mb-3">
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Ring Depth</label>
+                    <span className="text-xs font-mono text-cyan-400">{params.overlap} mm</span>
+                </div>
+                <input 
+                    type="range" name="overlap" min="-5" max="10" step="0.5" 
+                    value={params.overlap} onChange={handleChange} 
+                    className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                />
+            </section>
+
+            <section>
+                <div className="flex justify-between items-center mb-3">
                     <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Ring Inner Radius</label>
                     <span className="text-xs font-mono text-cyan-400">{params.ringInner} mm</span>
                 </div>
