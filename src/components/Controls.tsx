@@ -286,6 +286,20 @@ export default function Controls({ params, setParams }: ControlsProps) {
             </section>
             
             <section>
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Ring Type</label>
+                <select 
+                    name="ringType" 
+                    value={params.ringType || 'circle'} 
+                    onChange={handleChange}
+                    className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors shadow-inner font-mono mb-6"
+                >
+                    <option value="circle">Circle</option>
+                    <option value="square">Rounded Square</option>
+                    <option value="rounded_rectangle">Rounded Rectangle</option>
+                </select>
+            </section>
+
+            <section>
                 <div className="flex justify-between items-center mb-3">
                     <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Ring Outer Radius</label>
                     <span className="text-xs font-mono text-cyan-400">{params.ringOuter} mm</span>

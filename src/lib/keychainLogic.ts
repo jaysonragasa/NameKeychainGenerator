@@ -55,6 +55,7 @@ export interface KeychainParams {
     baseStyle: 'flat' | 'beveled' | 'framed';
     baseType: 'contour' | 'pill';
     ringPosition: number;
+    ringType?: 'circle' | 'square' | 'rounded_rectangle';
     fontUrl: string;
     baseColor: string;
     textColor: string;
@@ -355,16 +356,54 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     const ringCx = anchorX + dx * (ringOuterPx - overlapPx);
     const ringCy = anchorY + dy * (ringOuterPx - overlapPx);
 
-    // 3. Union Ring Outer
-    const ringOuterPath: any[] = [];
-    const segments = 64;
-    for (let i = 0; i < segments; i++) {
-        const a = (i / segments) * Math.PI * 2;
-        ringOuterPath.push({
-            X: Math.round(ringCx + Math.cos(a) * ringOuterPx),
-            Y: Math.round(ringCy + Math.sin(a) * ringOuterPx)
+    const createRingPath = (cx: number, cy: number, rad: number, type: 'circle' | 'square' | 'rounded_rectangle' | undefined, angle: number) => {
+        const path: any[] = [];
+        const rot = (x: number, y: number) => ({
+            X: Math.round(cx + x * Math.cos(angle) - y * Math.sin(angle)),
+            Y: Math.round(cy + x * Math.sin(angle) + y * Math.cos(angle))
         });
-    }
+
+        if (type === 'square' || type === 'rounded_rectangle') {
+            const cornerRad = rad * 0.4;
+            const halfX = rad;
+            const halfY = type === 'rounded_rectangle' ? rad * 1.5 : rad;
+
+            // Top-right
+            for(let i=0; i<=16; i++) {
+                const a = i/16 * Math.PI/2;
+                path.push(rot((halfX - cornerRad) + Math.cos(a)*cornerRad, (halfY - cornerRad) + Math.sin(a)*cornerRad));
+            }
+            // Top-left
+            for(let i=0; i<=16; i++) {
+                const a = Math.PI/2 + i/16 * Math.PI/2;
+                path.push(rot(-(halfX - cornerRad) + Math.cos(a)*cornerRad, (halfY - cornerRad) + Math.sin(a)*cornerRad));
+            }
+            // Bottom-left
+            for(let i=0; i<=16; i++) {
+                const a = Math.PI + i/16 * Math.PI/2;
+                path.push(rot(-(halfX - cornerRad) + Math.cos(a)*cornerRad, -(halfY - cornerRad) + Math.sin(a)*cornerRad));
+            }
+            // Bottom-right
+            for(let i=0; i<16; i++) {
+                const a = 3*Math.PI/2 + i/16 * Math.PI/2;
+                path.push(rot((halfX - cornerRad) + Math.cos(a)*cornerRad, -(halfY - cornerRad) + Math.sin(a)*cornerRad));
+            }
+        } else {
+            const segments = 64;
+            for (let i = 0; i < segments; i++) {
+                const a = (i / segments) * Math.PI * 2;
+                path.push({
+                    X: Math.round(cx + Math.cos(a) * rad),
+                    Y: Math.round(cy + Math.sin(a) * rad)
+                });
+            }
+        }
+        return path;
+    };
+
+    const ringAngle = Math.atan2(dy, dx);
+    // 3. Union Ring Outer
+    const ringOuterPath = createRingPath(ringCx, ringCy, ringOuterPx, params.ringType, ringAngle);
 
     const clipperUnion = new ClipperLib.Clipper();
     clipperUnion.AddPaths(rawBasePaths, ClipperLib.PolyType.ptSubject, true);
@@ -396,14 +435,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
 
     // 5. Subtract Holes
     const ringInnerPx = params.ringInner * SCALE;
-    const ringInnerPath: any[] = [];
-    for (let i = 0; i < segments; i++) {
-        const a = (i / segments) * Math.PI * 2;
-        ringInnerPath.push({
-            X: Math.round(ringCx + Math.cos(a) * ringInnerPx),
-            Y: Math.round(ringCy + Math.sin(a) * ringInnerPx)
-        });
-    }
+    const ringInnerPath = createRingPath(ringCx, ringCy, ringInnerPx, params.ringType, ringAngle);
 
     const clipperDiff = new ClipperLib.Clipper();
     clipperDiff.AddPaths(smoothedPaths, ClipperLib.PolyType.ptSubject, true);
