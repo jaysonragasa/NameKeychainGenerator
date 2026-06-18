@@ -269,7 +269,10 @@ export default function App() {
                     </div>
                 </aside>
             </main>
-            <footer className="h-10 bg-[#16191f] border-t border-white/5 px-8 flex items-center justify-end text-[10px] uppercase tracking-widest font-bold text-slate-600 z-30 relative">
+            <footer className="h-10 bg-[#16191f] border-t border-white/5 px-8 flex items-center justify-between text-[10px] uppercase tracking-widest font-bold text-slate-600 z-30 relative">
+                <div className="flex gap-6">
+                    <span>Protected by <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors underline decoration-slate-600 hover:decoration-cyan-400 underline-offset-4">GNU GPLv3 License</a></span>
+                </div>
                 <div className="flex gap-6">
                     <span>WebGL Acceleration Active</span>
                 </div>
