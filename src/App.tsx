@@ -15,8 +15,8 @@ import { exportTo3MFFile } from './lib/export3MF';
 const STORAGE_KEY = 'keyforge-3d-params';
 
 const defaultParams: KeychainParams = {
-    text: 'Keylab3D',
-    textScale: 1,
+    text: 'KeychainLab3D',
+    textScale: 15,
     textThickness: 3,
     textAlign: 'center',
     textItalic: false,
@@ -33,7 +33,7 @@ const defaultParams: KeychainParams = {
     baseStyle: 'flat',
     baseType: 'contour',
     ringPosition: 0,
-    fontUrl: '/Pacifico-Regular.ttf',
+    fontUrl: 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json',
     baseColor: '#3d4657',
     textColor: '#4fd1c5',
     frameColor: '#4fd1c5',
@@ -52,7 +52,8 @@ export default function App() {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (parsed.fontUrl && parsed.fontUrl.startsWith('blob:')) {
-                    parsed.fontUrl = defaultParams.fontUrl;
+                    parsed.fontUrl = 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json';
+                    parsed.textScale = 15;
                 }
                 return { ...defaultParams, ...parsed };
             }
@@ -184,6 +185,13 @@ export default function App() {
                                     v: (size.x * size.y * size.z * 0.7) / 1000
                                 });
                             }} 
+                            onFontLoadError={() => {
+                                setParams((prev) => ({
+                                    ...prev,
+                                    fontUrl: defaultParams.fontUrl,
+                                    textScale: defaultParams.textScale
+                                }));
+                            }}
                         />
                     </div>
                     {isExporting && (

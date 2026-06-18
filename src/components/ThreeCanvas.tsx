@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Center, Environment, Grid, Html, Bounds } from '@react-three/drei';
 import * as THREE from 'three';
@@ -8,9 +8,10 @@ import { loadFont, generateKeychainGeometries, KeychainParams } from '../lib/key
 interface ThreeCanvasProps {
     params: KeychainParams;
     onGroupReady: (group: THREE.Group) => void;
+    onFontLoadError?: () => void;
 }
 
-const KeychainModel: React.FC<{ params: KeychainParams, onGroupReady: (group: THREE.Group) => void }> = ({ params, onGroupReady }) => {
+const KeychainModel: React.FC<{ params: KeychainParams, onGroupReady: (group: THREE.Group) => void, onFontLoadError?: () => void }> = ({ params, onGroupReady, onFontLoadError }) => {
     const [font, setFont] = useState<Font | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const groupRef = useRef<THREE.Group>(null);
@@ -24,7 +25,10 @@ const KeychainModel: React.FC<{ params: KeychainParams, onGroupReady: (group: TH
                 setIsLoading(false);
             }
         }).catch(err => {
-            if (active) setIsLoading(false);
+            if (active) {
+                setIsLoading(false);
+                if (onFontLoadError) onFontLoadError();
+            }
             console.error("Failed to load font:", err);
         });
         return () => { active = false; };
@@ -85,7 +89,7 @@ const KeychainModel: React.FC<{ params: KeychainParams, onGroupReady: (group: TH
     );
 };
 
-export default function ThreeCanvas({ params, onGroupReady }: ThreeCanvasProps) {
+export default function ThreeCanvas({ params, onGroupReady, onFontLoadError }: ThreeCanvasProps) {
     return (
         <Canvas 
             dpr={[1, 2]}
@@ -107,9 +111,11 @@ export default function ThreeCanvas({ params, onGroupReady }: ThreeCanvasProps) 
             <spotLight position={[0, 10, 0]} angle={0.5} penumbra={1} intensity={0.5} color="#4fd1c5" castShadow={false} />
             <Environment preset="city" />
             <Bounds fit margin={1.5}>
-                <Center position={[0, 0, 0]}>
-                    <KeychainModel params={params} onGroupReady={onGroupReady} />
-                </Center>
+                <Suspense fallback={null}>
+                    <Center>
+                        <KeychainModel params={params} onGroupReady={onGroupReady} onFontLoadError={onFontLoadError} />
+                    </Center>
+                </Suspense>
             </Bounds>
             
             {params.showBuildPlate ? (
