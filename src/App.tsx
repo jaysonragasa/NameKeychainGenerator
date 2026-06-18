@@ -16,7 +16,7 @@ const STORAGE_KEY = 'keyforge-3d-params';
 
 const defaultParams: KeychainParams = {
     text: 'KeychainLab3D',
-    textScale: 15,
+    textScale: 13,
     textThickness: 3,
     textAlign: 'center',
     textItalic: false,
@@ -53,7 +53,7 @@ export default function App() {
                 const parsed = JSON.parse(saved);
                 if (parsed.fontUrl && parsed.fontUrl.startsWith('blob:')) {
                     parsed.fontUrl = 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json';
-                    parsed.textScale = 15;
+                    parsed.textScale = 13;
                 }
                 return { ...defaultParams, ...parsed };
             }
