@@ -307,6 +307,8 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     let maxT = -1;
     let anchorX = cx;
     let anchorY = cy;
+    let normalX = dx;
+    let normalY = dy;
 
     rawBasePaths.forEach((path: any) => {
         if (!ClipperLib.Clipper.Orientation(path)) return;
@@ -330,6 +332,8 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
                         maxT = t;
                         anchorX = cx + t * dx;
                         anchorY = cy + t * dy;
+                        normalX = -v2y;
+                        normalY = v2x;
                     }
                 }
             }
@@ -401,7 +405,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         return path;
     };
 
-    const ringAngle = Math.abs(dy) > Math.abs(dx) ? Math.PI / 2 : 0;
+    const ringAngle = Math.abs(normalY) > Math.abs(normalX) ? Math.PI / 2 : 0;
     // 3. Union Ring Outer
     const ringOuterPath = createRingPath(ringCx, ringCy, ringOuterPx, params.ringType, ringAngle);
 
