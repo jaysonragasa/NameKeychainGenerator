@@ -299,17 +299,46 @@ export default function Controls({ params, setParams }: ControlsProps) {
                 </select>
             </section>
 
-            <section>
-                <div className="flex justify-between items-center mb-3">
-                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Ring Outer Radius</label>
-                    <span className="text-xs font-mono text-cyan-400">{params.ringOuter} mm</span>
+            {params.ringType === 'rounded_rectangle' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300 mb-6">
+                    <section>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Rectangle Width</label>
+                            <span className="text-xs font-mono text-cyan-400">{params.ringRectWidth ?? 15} mm</span>
+                        </div>
+                        <input 
+                            type="range" name="ringRectWidth" min="5" max="30" step="1" 
+                            value={params.ringRectWidth ?? 15} onChange={handleChange} 
+                            className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        />
+                    </section>
+                    <section>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Rectangle Length</label>
+                            <span className="text-xs font-mono text-cyan-400">{params.ringRectLength ?? 10} mm</span>
+                        </div>
+                        <input 
+                            type="range" name="ringRectLength" min="5" max="30" step="1" 
+                            value={params.ringRectLength ?? 10} onChange={handleChange} 
+                            className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        />
+                    </section>
                 </div>
-                <input 
-                    type="range" name="ringOuter" min="5" max="15" step="1" 
-                    value={params.ringOuter} onChange={handleChange} 
-                    className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                />
-            </section>
+            )}
+
+            {params.ringType !== 'rounded_rectangle' && (
+                <section>
+                    <div className="flex justify-between items-center mb-3">
+                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Ring Outer Radius</label>
+                        <span className="text-xs font-mono text-cyan-400">{params.ringOuter} mm</span>
+                    </div>
+                    <input 
+                        type="range" name="ringOuter" min="3" max="15" step="0.5" 
+                        value={params.ringOuter} onChange={handleChange} 
+                        className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                </section>
+            )}
 
             <section>
                 <div className="flex justify-between items-center mb-3">

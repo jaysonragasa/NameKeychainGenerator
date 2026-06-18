@@ -34,6 +34,8 @@ const defaultParams: KeychainParams = {
     baseType: 'contour',
     ringPosition: 0,
     ringType: 'circle',
+    ringRectWidth: 15,
+    ringRectLength: 10,
     fontUrl: 'https://unpkg.com/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json',
     baseColor: '#3d4657',
     textColor: '#4fd1c5',

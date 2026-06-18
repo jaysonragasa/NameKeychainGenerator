@@ -56,6 +56,8 @@ export interface KeychainParams {
     baseType: 'contour' | 'pill';
     ringPosition: number;
     ringType?: 'circle' | 'square' | 'rounded_rectangle';
+    ringRectWidth?: number;
+    ringRectLength?: number;
     fontUrl: string;
     baseColor: string;
     textColor: string;
@@ -356,11 +358,19 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     }
 
     const ringOuterPx = params.ringOuter * SCALE;
+    const ringInnerPx = params.ringInner * SCALE;
     const overlapPx = params.overlap * SCALE;
-    const ringCx = anchorX + dx * (ringOuterPx - overlapPx);
-    const ringCy = anchorY + dy * (ringOuterPx - overlapPx);
 
-    const createRingPath = (cx: number, cy: number, rad: number, type: 'circle' | 'square' | 'rounded_rectangle' | undefined, angle: number) => {
+    const isRect = params.ringType === 'rounded_rectangle';
+    const rectLengthPx = (params.ringRectLength ?? 10) * SCALE;
+    const rectWidthPx = (params.ringRectWidth ?? 15) * SCALE;
+
+    const stickOutPx = isRect ? (rectLengthPx / 2) : ringOuterPx;
+
+    const ringCx = anchorX + dx * (stickOutPx - overlapPx);
+    const ringCy = anchorY + dy * (stickOutPx - overlapPx);
+
+    const createRingPath = (cx: number, cy: number, radX: number, radY: number, type: 'circle' | 'square' | 'rounded_rectangle' | undefined, angle: number) => {
         const path: any[] = [];
         const rot = (x: number, y: number) => ({
             X: Math.round(cx + x * Math.cos(angle) - y * Math.sin(angle)),
@@ -368,9 +378,9 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         });
 
         if (type === 'square' || type === 'rounded_rectangle') {
-            const cornerRad = rad * 0.4;
-            const halfX = rad;
-            const halfY = type === 'rounded_rectangle' ? rad * 1.5 : rad;
+            const cornerRad = Math.min(radX, radY) * 0.4;
+            const halfX = radX;
+            const halfY = radY;
 
             // Top-right
             for(let i=0; i<=16; i++) {
@@ -397,8 +407,8 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
             for (let i = 0; i < segments; i++) {
                 const a = (i / segments) * Math.PI * 2;
                 path.push({
-                    X: Math.round(cx + Math.cos(a) * rad),
-                    Y: Math.round(cy + Math.sin(a) * rad)
+                    X: Math.round(cx + Math.cos(a) * radX),
+                    Y: Math.round(cy + Math.sin(a) * radY)
                 });
             }
         }
@@ -406,8 +416,22 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     };
 
     const ringAngle = Math.abs(normalY) > Math.abs(normalX) ? Math.PI / 2 : 0;
+    
+    let outerRadX = ringOuterPx;
+    let outerRadY = ringOuterPx;
+    let innerRadX = ringInnerPx;
+    let innerRadY = ringInnerPx;
+
+    if (isRect) {
+        outerRadX = rectLengthPx / 2;
+        outerRadY = rectWidthPx / 2;
+        const thicknessPx = ringOuterPx - ringInnerPx;
+        innerRadX = Math.max(0.1, outerRadX - thicknessPx);
+        innerRadY = Math.max(0.1, outerRadY - thicknessPx);
+    }
+
     // 3. Union Ring Outer
-    const ringOuterPath = createRingPath(ringCx, ringCy, ringOuterPx, params.ringType, ringAngle);
+    const ringOuterPath = createRingPath(ringCx, ringCy, outerRadX, outerRadY, params.ringType, ringAngle);
 
     const clipperUnion = new ClipperLib.Clipper();
     clipperUnion.AddPaths(rawBasePaths, ClipperLib.PolyType.ptSubject, true);
@@ -438,8 +462,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     smoothedPaths = solidSmoothedPaths;
 
     // 5. Subtract Holes
-    const ringInnerPx = params.ringInner * SCALE;
-    const ringInnerPath = createRingPath(ringCx, ringCy, ringInnerPx, params.ringType, ringAngle);
+    const ringInnerPath = createRingPath(ringCx, ringCy, innerRadX, innerRadY, params.ringType, ringAngle);
 
     const clipperDiff = new ClipperLib.Clipper();
     clipperDiff.AddPaths(smoothedPaths, ClipperLib.PolyType.ptSubject, true);
