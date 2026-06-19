@@ -328,6 +328,17 @@ export default function Controls({ params, setParams }: ControlsProps) {
                             value={params.ringRotation ?? 0} onChange={handleChange} 
                             className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
                         />
+                        <div className="flex justify-between mt-3 gap-2">
+                            {[0, 45, 90, 135].map(deg => (
+                                <button
+                                    key={deg}
+                                    onClick={() => handleChange({ target: { name: 'ringRotation', value: deg.toString(), type: 'number' } } as any)}
+                                    className="flex-1 py-1.5 bg-[#0a0c10] border border-white/5 hover:border-cyan-500/50 hover:bg-white/5 rounded-md text-[10px] font-mono text-slate-400 hover:text-cyan-400 transition-colors shadow-sm"
+                                >
+                                    {deg}°
+                                </button>
+                            ))}
+                        </div>
                     </section>
                 )}
 
