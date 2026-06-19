@@ -165,7 +165,7 @@ export default function App() {
                     <h1 className="text-base md:text-lg font-semibold tracking-tight text-white">KeychainLab<span className="text-slate-500 font-normal">3D</span></h1>
                 </div>
                 <div className="flex items-center gap-6 text-xs md:text-sm font-medium">
-                    <div className="flex items-center gap-2 mr-4">
+                    <div className="flex items-center gap-2">
                         <button 
                             onClick={() => fileInputRef.current?.click()}
                             className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
@@ -179,7 +179,6 @@ export default function App() {
                             Save Project
                         </button>
                     </div>
-                    <span className="text-cyan-400 cursor-default border-b-2 border-cyan-400 py-4 md:py-5">Generator</span>
                 </div>
             </nav>
             <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
