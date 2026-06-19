@@ -1,0 +1,86 @@
+import React, { useState, useEffect } from 'react';
+import { X, Save } from 'lucide-react';
+import { getSavedProjects } from '../lib/projectStorage';
+
+interface SaveModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (name: string) => void;
+    currentName: string | null;
+}
+
+export function SaveModal({ isOpen, onClose, onSave, currentName }: SaveModalProps) {
+    const [name, setName] = useState(currentName || '');
+    const [error, setError] = useState('');
+    const [existingProjects, setExistingProjects] = useState<string[]>([]);
+    
+    useEffect(() => {
+        if (isOpen) {
+            setName(currentName || '');
+            setError('');
+            setExistingProjects(getSavedProjects());
+        }
+    }, [isOpen, currentName]);
+
+    if (!isOpen) return null;
+
+    const handleSave = () => {
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+            setError('Project name cannot be empty');
+            return;
+        }
+        
+        if (existingProjects.includes(trimmedName) && trimmedName !== currentName) {
+            if (!window.confirm(`A project named "${trimmedName}" already exists. Overwrite?`)) {
+                return;
+            }
+        }
+        
+        onSave(trimmedName);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[#16191f] border border-white/10 rounded-xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Save size={16} className="text-cyan-400" />
+                        Save Project As
+                    </h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                        <X size={18} />
+                    </button>
+                </div>
+                <div className="p-5">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Project Name</label>
+                    <input 
+                        type="text" 
+                        value={name}
+                        onChange={(e) => { setName(e.target.value); setError(''); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
+                        placeholder="e.g. My Awesome Tag"
+                        autoFocus
+                        className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-slate-600"
+                    />
+                    {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+                    
+                    <div className="mt-6 flex justify-end gap-3">
+                        <button 
+                            onClick={onClose}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleSave}
+                            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+                        >
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

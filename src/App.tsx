@@ -11,7 +11,9 @@ import Controls from './components/Controls';
 import { KeychainParams } from './lib/keychainLogic';
 import { exportToSTL } from './lib/exportSTL';
 import { exportTo3MFFile } from './lib/export3MF';
-
+import { SaveModal } from './components/SaveModal';
+import { OpenModal } from './components/OpenModal';
+import { saveProject, loadProject } from './lib/projectStorage';
 const STORAGE_KEY = 'keyforge-3d-params';
 
 const defaultParams: KeychainParams = {
@@ -79,6 +81,11 @@ export default function App() {
     }, [params]);
 
     const [isExporting, setIsExporting] = useState(false);
+    
+    // Project management state
+    const [currentProjectName, setCurrentProjectName] = useState<string | null>(null);
+    const [showSaveModal, setShowSaveModal] = useState(false);
+    const [showOpenModal, setShowOpenModal] = useState(false);
     const [leftOpen, setLeftOpen] = useState(window.innerWidth > 768);
     const [rightOpen, setRightOpen] = useState(window.innerWidth > 768);
     const [showDonation, setShowDonation] = useState(false);
@@ -132,6 +139,38 @@ export default function App() {
                     <h1 className="text-base md:text-lg font-semibold tracking-tight text-white">KeychainLab<span className="text-slate-500 font-normal">3D</span></h1>
                 </div>
                 <div className="flex items-center gap-6 text-xs md:text-sm font-medium">
+                    <div className="flex items-center gap-2 mr-4">
+                        <button 
+                            onClick={() => setShowOpenModal(true)}
+                            className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                        >
+                            Open
+                        </button>
+                        <button 
+                            onClick={() => {
+                                if (currentProjectName) {
+                                    saveProject(currentProjectName, params);
+                                } else {
+                                    setShowSaveModal(true);
+                                }
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                        >
+                            Save
+                        </button>
+                        <button 
+                            onClick={() => setShowSaveModal(true)}
+                            className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                        >
+                            Save As...
+                        </button>
+                    </div>
+                    {currentProjectName && (
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 mr-4">
+                            <span className="text-[10px] uppercase tracking-wider opacity-70">Project:</span>
+                            <span className="font-semibold">{currentProjectName}</span>
+                        </div>
+                    )}
                     <span className="text-cyan-400 cursor-default border-b-2 border-cyan-400 py-4 md:py-5">Generator</span>
                 </div>
             </nav>
@@ -292,6 +331,29 @@ export default function App() {
                     <span>WebGL Acceleration Active</span>
                 </div>
             </footer>
+            {/* Modals */}
+            <SaveModal 
+                isOpen={showSaveModal} 
+                onClose={() => setShowSaveModal(false)} 
+                currentName={currentProjectName}
+                onSave={(name) => {
+                    saveProject(name, params);
+                    setCurrentProjectName(name);
+                    setShowSaveModal(false);
+                }}
+            />
+            <OpenModal 
+                isOpen={showOpenModal} 
+                onClose={() => setShowOpenModal(false)} 
+                onLoad={(name) => {
+                    const loadedParams = loadProject(name);
+                    if (loadedParams) {
+                        setParams(loadedParams);
+                        setCurrentProjectName(name);
+                        setShowOpenModal(false);
+                    }
+                }}
+            />
         </div>
     );
 }
