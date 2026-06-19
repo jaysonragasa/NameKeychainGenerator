@@ -227,17 +227,52 @@ export default function Controls({ params, setParams }: ControlsProps) {
                                 className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
                             />
                         </section>
-                        <section>
-                            <div className="flex justify-between items-center mb-3">
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Vertical Padding</label>
-                                <span className="text-xs font-mono text-cyan-400">{params.paddingY} mm</span>
-                            </div>
-                            <input 
-                                type="range" name="paddingY" min="0" max="25" step="1" 
-                                value={params.paddingY} onChange={handleChange} 
-                                className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                            />
-                        </section>
+                        <div className="grid grid-cols-2 gap-4">
+                            <section>
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Top Pad</label>
+                                    <span className="text-[10px] font-mono text-cyan-400">{params.paddingTop ?? params.paddingY} mm</span>
+                                </div>
+                                <input 
+                                    type="range" name="paddingTop" min="0" max="25" step="1" 
+                                    value={params.paddingTop ?? params.paddingY} onChange={handleChange} 
+                                    className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                                />
+                            </section>
+                            <section>
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Bottom Pad</label>
+                                    <span className="text-[10px] font-mono text-cyan-400">{params.paddingBottom ?? params.paddingY} mm</span>
+                                </div>
+                                <input 
+                                    type="range" name="paddingBottom" min="0" max="25" step="1" 
+                                    value={params.paddingBottom ?? params.paddingY} onChange={handleChange} 
+                                    className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                                />
+                            </section>
+                            <section>
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Left Pad</label>
+                                    <span className="text-[10px] font-mono text-cyan-400">{params.paddingLeft ?? params.paddingX} mm</span>
+                                </div>
+                                <input 
+                                    type="range" name="paddingLeft" min="0" max="25" step="1" 
+                                    value={params.paddingLeft ?? params.paddingX} onChange={handleChange} 
+                                    className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                                />
+                            </section>
+                            <section>
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Right Pad</label>
+                                    <span className="text-[10px] font-mono text-cyan-400">{params.paddingRight ?? params.paddingX} mm</span>
+                                </div>
+                                <input 
+                                    type="range" name="paddingRight" min="0" max="25" step="1" 
+                                    value={params.paddingRight ?? params.paddingX} onChange={handleChange} 
+                                    className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                                />
+                            </section>
+                        </div>
                     </div>
                 )}
 
@@ -253,19 +288,19 @@ export default function Controls({ params, setParams }: ControlsProps) {
                     />
                 </section>
 
-                <section>
-                    <div className="flex justify-between items-center mb-3">
-                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                            {params.baseType === 'pill' ? 'Horizontal Padding' : 'Contour Padding'}
-                        </label>
-                        <span className="text-xs font-mono text-cyan-400">{params.paddingX} mm</span>
-                    </div>
-                    <input 
-                        type="range" name="paddingX" min="1" max="15" step="0.5" 
-                        value={params.paddingX} onChange={handleChange} 
-                        className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                    />
-                </section>
+                {params.baseType === 'contour' && (
+                    <section>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Contour Padding</label>
+                            <span className="text-xs font-mono text-cyan-400">{params.paddingX} mm</span>
+                        </div>
+                        <input 
+                            type="range" name="paddingX" min="1" max="15" step="0.5" 
+                            value={params.paddingX} onChange={handleChange} 
+                            className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        />
+                    </section>
+                )}
                 
                 <section>
                     <div className="flex justify-between items-center mb-3">

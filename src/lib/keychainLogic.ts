@@ -46,8 +46,12 @@ export interface KeychainParams {
     textUnderline: boolean;
     lineSpacing: number;
     baseThickness: number;
-    paddingX: number;
-    paddingY: number;
+    paddingX: number; // Used for contour padding
+    paddingY: number; // Legacy, keep for compatibility
+    paddingTop?: number;
+    paddingBottom?: number;
+    paddingLeft?: number;
+    paddingRight?: number;
     ringOuter: number;
     ringInner: number;
     overlap: number;
@@ -207,14 +211,20 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     let rawBasePaths = [];
     
     if (params.baseType === 'pill') {
-        const w = textW + params.paddingX * 2;
-        const h = Math.max(textH + params.paddingY * 2, params.ringOuter * 2);
+        const pTop = params.paddingTop ?? params.paddingY;
+        const pBottom = params.paddingBottom ?? params.paddingY;
+        const pLeft = params.paddingLeft ?? params.paddingX;
+        const pRight = params.paddingRight ?? params.paddingX;
+
+        const w = textW + pLeft + pRight;
+        const desiredH = textH + pTop + pBottom;
+        const h = Math.max(desiredH, params.ringOuter * 2);
+        const yOffset = (h - desiredH) / 2;
+
+        const x = bb.min.x - pLeft;
+        const y = bb.min.y - pBottom - yOffset;
+
         const r = Math.min(params.cornerRadius, w / 2, h / 2);
-        
-        const cx = (bb.min.x + bb.max.x) / 2;
-        const cy = (bb.min.y + bb.max.y) / 2;
-        const x = cx - w / 2;
-        const y = cy - h / 2;
 
         const baseShape = new THREE.Shape();
         const drawRoundedRect = (target: THREE.Shape, bx: number, by: number, bw: number, bh: number, br: number) => {
