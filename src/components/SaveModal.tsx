@@ -52,7 +52,7 @@ export function SaveModal({ isOpen, onClose, onSave }: SaveModalProps) {
                             autoFocus
                             className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-slate-600"
                         />
-                        <span className="text-slate-500 font-mono text-sm">.json</span>
+                        <span className="text-slate-500 font-mono text-sm">.keychain3d</span>
                     </div>
                     {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
                     

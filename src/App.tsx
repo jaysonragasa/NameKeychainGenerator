@@ -154,7 +154,7 @@ export default function App() {
                 type="file" 
                 ref={fileInputRef} 
                 onChange={handleOpenFile} 
-                accept=".json" 
+                accept=".keychain3d" 
                 className="hidden" 
             />
             <nav className="h-14 md:h-16 px-4 md:px-8 flex flex-none items-center justify-between bg-[#16191f] border-b border-white/5 z-30 relative">
@@ -347,7 +347,7 @@ export default function App() {
                     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(params, null, 2));
                     const downloadAnchorNode = document.createElement('a');
                     downloadAnchorNode.setAttribute("href", dataStr);
-                    downloadAnchorNode.setAttribute("download", `${name}.json`);
+                    downloadAnchorNode.setAttribute("download", `${name}.keychain3d`);
                     document.body.appendChild(downloadAnchorNode);
                     downloadAnchorNode.click();
                     downloadAnchorNode.remove();
