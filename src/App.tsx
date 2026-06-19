@@ -168,6 +168,16 @@ export default function App() {
                 <div className="flex items-center gap-6 text-xs md:text-sm font-medium">
                     <div className="flex items-center gap-2">
                         <button 
+                            onClick={() => {
+                                if (window.confirm('Are you sure you want to start a new project? Unsaved changes will be lost.')) {
+                                    setParams(defaultParams);
+                                }
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                        >
+                            New Project
+                        </button>
+                        <button 
                             onClick={() => fileInputRef.current?.click()}
                             className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
                         >
