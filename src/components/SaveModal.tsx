@@ -31,7 +31,7 @@ export function SaveModal({ isOpen, onClose, onSave }: SaveModalProps) {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#16191f] border border-white/10 rounded-xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-[#16191f]/60 backdrop-blur-xl border border-white/10 rounded-xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
                         <Save size={16} className="text-cyan-400" />

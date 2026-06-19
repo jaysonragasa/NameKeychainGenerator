@@ -12,6 +12,7 @@ import { KeychainParams } from './lib/keychainLogic';
 import { exportToSTL } from './lib/exportSTL';
 import { exportTo3MFFile } from './lib/export3MF';
 import { SaveModal } from './components/SaveModal';
+import { ConfirmModal } from './components/ConfirmModal';
 const STORAGE_KEY = 'keyforge-3d-params';
 
 const defaultParams: KeychainParams = {
@@ -83,6 +84,7 @@ export default function App() {
     
     // Project management state
     const [showSaveModal, setShowSaveModal] = useState(false);
+    const [showConfirmNew, setShowConfirmNew] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [leftOpen, setLeftOpen] = useState(window.innerWidth > 768);
     const [rightOpen, setRightOpen] = useState(window.innerWidth > 768);
@@ -168,11 +170,7 @@ export default function App() {
                 <div className="flex items-center gap-6 text-xs md:text-sm font-medium">
                     <div className="flex items-center gap-2">
                         <button 
-                            onClick={() => {
-                                if (window.confirm('Are you sure you want to start a new project? Unsaved changes will be lost.')) {
-                                    setParams(defaultParams);
-                                }
-                            }}
+                            onClick={() => setShowConfirmNew(true)}
                             className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
                         >
                             New Project
@@ -350,8 +348,16 @@ export default function App() {
                 </div>
             </footer>
             {/* Modals */}
+            <ConfirmModal
+                isOpen={showConfirmNew}
+                onClose={() => setShowConfirmNew(false)}
+                onConfirm={() => setParams(defaultParams)}
+                title="Start New Project"
+                message="Are you sure you want to start a new project? Any unsaved changes will be lost."
+                confirmText="New Project"
+            />
             <SaveModal 
-                isOpen={showSaveModal} 
+                isOpen={showSaveModal}  
                 onClose={() => setShowSaveModal(false)} 
                 onSave={(name) => {
                     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(params, null, 2));
