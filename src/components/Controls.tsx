@@ -187,6 +187,24 @@ export default function Controls({ params, setParams }: ControlsProps) {
                     </select>
                 </section>
 
+                {params.baseStyle === 'beveled' && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <section>
+                            <div className="flex justify-between items-center mb-3">
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Fillet / Chamfer</label>
+                                <span className="text-xs font-mono text-cyan-400">
+                                    {(params.baseBevelValue ?? 1) > 0 ? `Fillet +${params.baseBevelValue}` : (params.baseBevelValue ?? 1) < 0 ? `Chamfer ${params.baseBevelValue}` : 'None (0)'} mm
+                                </span>
+                            </div>
+                            <input 
+                                type="range" name="baseBevelValue" min="-0.8" max="0.8" step="0.1" 
+                                value={params.baseBevelValue ?? 1} onChange={handleChange} 
+                                className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                            />
+                        </section>
+                    </div>
+                )}
+
                 {params.baseStyle === 'framed' && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
                         <section>

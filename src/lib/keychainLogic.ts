@@ -57,6 +57,7 @@ export interface KeychainParams {
     overlap: number;
     cornerRadius: number;
     baseStyle: 'flat' | 'beveled' | 'framed';
+    baseBevelValue?: number;
     baseType: 'contour' | 'pill';
     ringPosition: number;
     ringType?: 'circle' | 'square' | 'rounded_rectangle';
@@ -200,12 +201,25 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     const textW = bb.max.x - bb.min.x;
     const textH = bb.max.y - bb.min.y;
 
+    const bevelValue = params.baseBevelValue ?? 1;
+    const isBevelActive = params.baseStyle === 'beveled' && bevelValue !== 0;
+    const isFillet = bevelValue > 0;
+    let absBevel = isBevelActive ? Math.abs(bevelValue) : 0;
+    
+    // Prevent bevel from making the object thicker than baseThickness, 
+    // or depth from becoming negative
+    const maxBevel = Math.max(0, (params.baseThickness - 0.1) / 2);
+    if (isBevelActive) {
+        absBevel = Math.min(absBevel, maxBevel);
+    }
+    const depth = isBevelActive ? (params.baseThickness - 2 * absBevel) : params.baseThickness;
+
     const extrudeSettings = {
-        depth: params.baseThickness,
-        bevelEnabled: params.baseStyle === 'beveled',
-        bevelThickness: 0.8,
-        bevelSize: 0.6,
-        bevelSegments: 3,
+        depth: depth,
+        bevelEnabled: isBevelActive,
+        bevelThickness: isBevelActive ? absBevel : 0,
+        bevelSize: isBevelActive ? absBevel * 0.8 : 0,
+        bevelSegments: isFillet ? 3 : 1,
         curveSegments: 12
     };
 
@@ -474,7 +488,14 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
 
     // 4. Apply Morphological Smoothing
     let smoothedPaths = unionedPaths;
-    const smoothVal = params.contourSmoothing || 0;
+    let smoothVal = params.contourSmoothing || 0;
+    
+    // If beveling, we MUST smooth out sharp concave corners by at least the bevel size
+    // to prevent ExtrudeGeometry from generating self-intersecting geometry (spikes).
+    if (isBevelActive) {
+        smoothVal = Math.max(smoothVal, absBevel * 1.2);
+    }
+
     if (smoothVal > 0) {
         const inflateCo = new ClipperLib.ClipperOffset();
         inflateCo.AddPaths(unionedPaths, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
@@ -543,6 +564,9 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     });
 
     const baseGeo = new THREE.ExtrudeGeometry(baseShapes, extrudeSettings);
+    if (isBevelActive) {
+        baseGeo.translate(0, 0, absBevel);
+    }
     let borderGeo: THREE.ExtrudeGeometry | null = null;
 
     if (params.baseStyle === 'framed') {

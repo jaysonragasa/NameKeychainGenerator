@@ -36,6 +36,7 @@ const defaultParams: KeychainParams = {
     overlap: 2,
     cornerRadius: 4,
     baseStyle: 'flat',
+    baseBevelValue: 1,
     baseType: 'contour',
     ringPosition: 0,
     ringType: 'circle',
