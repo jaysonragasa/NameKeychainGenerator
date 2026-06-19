@@ -10,16 +10,16 @@ interface ControlsProps {
 function Accordion({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     return (
-        <div className="border border-white/10 rounded-lg bg-[#0a0c10] mb-3 shadow-sm">
+        <div className="border border-white/10 rounded-lg bg-[#0a0c10] mb-2 shadow-sm">
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full px-4 py-3 flex justify-between items-center bg-[#16191f] hover:bg-[#1a1e26] transition-colors ${isOpen ? 'rounded-t-lg border-b border-white/5' : 'rounded-lg'}`}
+                className={`w-full px-3 py-2.5 flex justify-between items-center bg-[#16191f] hover:bg-[#1a1e26] transition-colors ${isOpen ? 'rounded-t-lg border-b border-white/5' : 'rounded-lg'}`}
             >
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-300">{title}</span>
-                {isOpen ? <ChevronDown size={16} className="text-cyan-500" /> : <ChevronRight size={16} className="text-slate-500" />}
+                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-300">{title}</span>
+                {isOpen ? <ChevronDown size={14} className="text-cyan-500" /> : <ChevronRight size={14} className="text-slate-500" />}
             </button>
             {isOpen && (
-                <div className="p-4 space-y-6 animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="p-3 space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     {children}
                 </div>
             )}
