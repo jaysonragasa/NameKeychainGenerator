@@ -147,7 +147,7 @@ export default function App() {
                     >
                         <X size={18} />
                     </button>
-                    <div className="w-full md:w-80 p-6 pt-14 md:pt-6 h-full overflow-y-auto">
+                    <div className="w-full md:w-80 px-3 py-4 pt-14 md:pt-4 h-full overflow-y-auto">
                         <Controls params={params} setParams={setParams} />
                     </div>
                 </aside>
