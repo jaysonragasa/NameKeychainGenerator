@@ -20,23 +20,25 @@ Creating personalized keychains for 3D printing often requires navigating comple
 
 - **Real-Time 3D Preview**: Watch your keychain take shape instantly in a responsive 3D environment complete with dynamic lighting, realistic shadows, and full orbit controls.
 - **Advanced Typography**: Type multi-line text, adjust alignment, and apply formatting like bold, italic, and underline styling.
-- **Custom Font Support**: Choose from a curated selection of Google Fonts (like Pacifico, Roboto, and Caveat) or upload your own local `.ttf` font files.
-  - *Includes a smart fallback to standard fonts if your uploaded font is unavailable.*
-- **Customizable Base**: 
+- **Custom Font Support**: Choose from a curated selection of Google Fonts (like Pacifico, Roboto, and Caveat) or upload your own local `.ttf` font files with smart fallbacks.
+- **Customizable Base & Paddings**: 
   - **Contour Mode**: The base perfectly hugs the outline of your letters.
   - **Pill Mode**: A classic, rounded rectangular bounding box.
-  - Fine-tune corner radii, contour padding, and base thickness to your exact liking.
-- **Integrated Keyring Loop**: Automatically generates a sturdy attachment ring. You can customize its inner/outer radius and slide its position around the keychain.
-- **Export to 3D Print Formats**: Seamlessly export your creations directly to `.STL` or `.3MF` formats. The exported models are perfectly manifold, boolean-merged, and optimized for immediate slicing.
-- **Dynamic Build Plate**: Toggle a visual build plate and grid to understand the true physical scale of your keychain before you hit print.
+  - **Asymmetrical Padding**: Uniquely adjust Top, Bottom, Left, and Right padding individually to fine-tune the exact shape around your text, regardless of the base type!
+- **Advanced Attachment Ring**: 
+  - Choose between Circle, Square, or Custom-Sized Rounded Rectangle ring types.
+  - **Smart Orientation**: Rounded Rectangles automatically snap to landscape or portrait orientation depending on where you slide the attachment point.
+  - **Adjustable Overlap**: Customize the "Ring Depth" to control exactly how deep the ring merges into the base body.
+- **Intuitive UI Design**: Complex customization options are cleanly organized into collapsible categories (Typography, Base Shape, Rings, Colors) allowing for deep control without screen clutter.
+- **Export to 3D Print Formats**: Seamlessly export your creations directly to `.STL` or `.3MF` formats. The exported models are perfectly manifold, boolean-merged, and optimized for immediate slicing. Includes built-in volume and print-time estimations!
 
 ## 🛠️ Tech Stack
 
 KeychainLab3D is built with modern, cutting-edge web technologies:
 
-- **Frontend**: [React.js](https://reactjs.org/)
+- **Frontend Framework**: [React.js](https://reactjs.org/)
 - **3D Engine**: [Three.js](https://threejs.org/) & [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/)
-- **Geometry Operations**: `clipper-lib` (Robust 2D boolean operations for generating solid base contours and merging overlapping paths)
+- **Geometry Operations**: `clipper-lib` (Robust 2D boolean operations for generating solid base contours, merging overlapping paths, and supporting complex asymmetrical contour offsets)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) for a sleek, responsive dark-mode UI
 - **Build Tool**: [Vite](https://vitejs.dev/) for lightning-fast development
 - **Language**: [TypeScript](https://www.typescriptlang.org/) for type-safe, maintainable code
