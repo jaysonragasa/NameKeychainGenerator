@@ -317,6 +317,20 @@ export default function Controls({ params, setParams }: ControlsProps) {
                     </select>
                 </section>
 
+                {params.ringType !== 'circle' && (
+                    <section className="mt-2 mb-4">
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Shape Rotation</label>
+                            <span className="text-xs font-mono text-cyan-400">{params.ringRotation ?? 0}°</span>
+                        </div>
+                        <input 
+                            type="range" name="ringRotation" min="0" max="360" step="1" 
+                            value={params.ringRotation ?? 0} onChange={handleChange} 
+                            className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        />
+                    </section>
+                )}
+
                 {params.ringType === 'rounded_rectangle' && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
                         <section>

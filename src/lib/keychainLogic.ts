@@ -60,6 +60,7 @@ export interface KeychainParams {
     baseType: 'contour' | 'pill';
     ringPosition: number;
     ringType?: 'circle' | 'square' | 'rounded_rectangle';
+    ringRotation?: number;
     ringRectWidth?: number;
     ringRectLength?: number;
     fontUrl: string;
@@ -447,8 +448,7 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         }
         return path;
     };
-
-    const ringAngle = Math.abs(normalY) > Math.abs(normalX) ? Math.PI / 2 : 0;
+    const ringAngle = (params.ringRotation ?? 0) * (Math.PI / 180);
     
     let outerRadX = ringOuterPx;
     let outerRadY = ringOuterPx;
