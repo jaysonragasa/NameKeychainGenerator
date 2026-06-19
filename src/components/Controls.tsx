@@ -157,6 +157,20 @@ export default function Controls({ params, setParams }: ControlsProps) {
                         className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
                     />
                 </section>
+
+                <section>
+                    <div className="flex justify-between items-center mb-3">
+                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Text Fillet / Chamfer</label>
+                        <span className="text-xs font-mono text-cyan-400">
+                            {(params.textBevelValue ?? 0) > 0 ? `Fillet +${params.textBevelValue}` : (params.textBevelValue ?? 0) < 0 ? `Chamfer ${params.textBevelValue}` : 'None (0)'} mm
+                        </span>
+                    </div>
+                    <input 
+                        type="range" name="textBevelValue" min="-0.6" max="0.6" step="0.1" 
+                        value={params.textBevelValue ?? 0} onChange={handleChange} 
+                        className="w-full h-1 bg-[#0a0c10] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                </section>
             </Accordion>
 
             <Accordion title="Base Shape & Style">
