@@ -48,7 +48,7 @@ export default function Controls({ params, setParams }: ControlsProps) {
     };
 
     return (
-        <div className="flex flex-col pt-2 pb-8">
+        <div className="flex flex-col pb-8">
             <Accordion title="Typography" defaultOpen={true}>
                 <section>
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Text</label>
