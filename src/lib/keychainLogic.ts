@@ -244,13 +244,36 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
         const poly = pts.map(p => ({ X: Math.round(p.x * SCALE), Y: Math.round(p.y * SCALE) }));
         rawBasePaths.push(poly);
     } else {
-        const subj = [];
-        allClipperPaths.forEach(path => subj.push(path));
+        const boldOffset = params.textBold ? params.textScale * 0.03 : 0;
+        const padX = ((params.paddingLeft ?? params.paddingX) + (params.paddingRight ?? params.paddingX)) / 2 + boldOffset;
+        const padY = ((params.paddingTop ?? params.paddingY) + (params.paddingBottom ?? params.paddingY)) / 2 + boldOffset;
+        const shiftX = ((params.paddingRight ?? params.paddingX) - (params.paddingLeft ?? params.paddingX)) / 2;
+        const shiftY = ((params.paddingTop ?? params.paddingY) - (params.paddingBottom ?? params.paddingY)) / 2;
+
+        const safePadX = Math.max(0.1, padX);
+        const safePadY = Math.max(0.1, padY);
+        const R = Math.max(safePadX, safePadY);
+        const scaleX = R / safePadX;
+        const scaleY = R / safePadY;
+
+        const subj: any[] = [];
+        allClipperPaths.forEach(path => {
+            subj.push(path.map((p: any) => ({
+                X: Math.round(p.X * scaleX),
+                Y: Math.round(p.Y * scaleY)
+            })));
+        });
         
         const co = new ClipperLib.ClipperOffset();
         co.AddPaths(subj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
-        const baseOffset = (params.paddingX + (params.textBold ? params.textScale * 0.03 : 0)) * SCALE;
-        co.Execute(rawBasePaths, baseOffset);
+        co.Execute(rawBasePaths, R * SCALE);
+        
+        rawBasePaths = rawBasePaths.map(path => {
+            return path.map((p: any) => ({
+                X: Math.round((p.X / scaleX) + shiftX * SCALE),
+                Y: Math.round((p.Y / scaleY) + shiftY * SCALE)
+            }));
+        });
         
         const outers: any[] = [];
         rawBasePaths.forEach((path: any) => {
