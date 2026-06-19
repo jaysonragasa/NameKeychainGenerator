@@ -43,6 +43,7 @@ export interface KeychainParams {
     textAlign: 'left' | 'center' | 'right';
     textItalic: boolean;
     textBold: boolean;
+    textBevelValue?: number;
     textUnderline: boolean;
     lineSpacing: number;
     baseThickness: number;
@@ -86,14 +87,130 @@ export function generateKeychainGeometries(font: Font, params: KeychainParams) {
     lines.forEach(line => {
         const shapes = font.generateShapes(line || ' ', params.textScale);
         
-        const geo = new THREE.ExtrudeGeometry(shapes, {
-            depth: params.textThickness,
-            bevelEnabled: params.textBold,
-            bevelThickness: params.textBold ? 0.1 : 0,
-            bevelSize: params.textBold ? params.textScale * 0.03 : 0,
-            bevelSegments: params.textBold ? 2 : 0,
-            curveSegments: 8
+        let tBevel = params.textBevelValue || 0;
+        let isTBevel = tBevel !== 0;
+        let tFillet = tBevel > 0;
+        let tAbsBevel = Math.abs(tBevel);
+        let bSize = tAbsBevel * 0.8;
+        let bSegs = tFillet ? 3 : 1;
+
+        const boldOffset = params.textBold ? params.textScale * 0.03 : 0;
+        let isBoldEffect = false;
+
+        if (!isTBevel && params.textBold) {
+            isTBevel = true;
+            tAbsBevel = 0.1;
+            tFillet = true;
+            bSize = boldOffset;
+            bSegs = 2;
+            isBoldEffect = true;
+        }
+
+        const maxTBevel = Math.max(0, (params.textThickness - 0.1) / (isBoldEffect ? 1 : 2));
+        tAbsBevel = Math.min(tAbsBevel, maxTBevel);
+        
+        const applyOffset = (inputShapes: THREE.Shape[], offset: number) => {
+            if (Math.abs(offset) < 0.001) return inputShapes;
+            const subj: any[] = [];
+            inputShapes.forEach((shape: THREE.Shape) => {
+                const pts = shape.extractPoints(12);
+                const outer = pts.shape.map(p => ({ X: Math.round(p.x * SCALE), Y: Math.round(p.y * SCALE) }));
+                if (!ClipperLib.Clipper.Orientation(outer)) outer.reverse();
+                subj.push(outer);
+                
+                pts.holes.forEach((hole: THREE.Vector2[]) => {
+                    const h = hole.map((p: THREE.Vector2) => ({ X: Math.round(p.x * SCALE), Y: Math.round(p.y * SCALE) }));
+                    if (ClipperLib.Clipper.Orientation(h)) h.reverse();
+                    subj.push(h);
+                });
+            });
+            const co = new ClipperLib.ClipperOffset();
+            co.AddPaths(subj, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+            const result: any[] = [];
+            co.Execute(result, offset * SCALE);
+            
+            const offsetShapes: THREE.Shape[] = [];
+            const outers: any[] = [];
+            const holes: any[] = [];
+            result.forEach(path => {
+                if (ClipperLib.Clipper.Orientation(path)) outers.push(path);
+                else holes.push(path);
+            });
+            
+            outers.forEach(outer => {
+                const s = new THREE.Shape();
+                outer.forEach((p: any, idx: number) => {
+                    if (idx === 0) s.moveTo(p.X / SCALE, p.Y / SCALE);
+                    else s.lineTo(p.X / SCALE, p.Y / SCALE);
+                });
+                s.closePath();
+                holes.forEach(hole => {
+                    if (ClipperLib.Clipper.PointInPolygon(hole[0], outer) !== 0) {
+                        const h = new THREE.Path();
+                        hole.forEach((p: any, idx: number) => {
+                            if (idx === 0) h.moveTo(p.X / SCALE, p.Y / SCALE);
+                            else h.lineTo(p.X / SCALE, p.Y / SCALE);
+                        });
+                        h.closePath();
+                        s.holes.push(h);
+                    }
+                });
+                offsetShapes.push(s);
+            });
+            return offsetShapes.length > 0 ? offsetShapes : inputShapes;
+        };
+
+        const totalOffset = boldOffset - (isTBevel ? bSize : 0);
+        const finalShapes = applyOffset(shapes, totalOffset);
+
+        const tDepth = isTBevel ? Math.max(0.1, params.textThickness - (isBoldEffect ? tAbsBevel : 2 * tAbsBevel)) : params.textThickness;
+
+        let geo: THREE.BufferGeometry = new THREE.ExtrudeGeometry(finalShapes, {
+            depth: tDepth,
+            bevelEnabled: isTBevel,
+            bevelThickness: isTBevel ? tAbsBevel : 0,
+            bevelSize: isTBevel ? bSize : 0,
+            bevelSegments: isTBevel ? bSegs : 0,
+            curveSegments: 12
         });
+
+        if (isTBevel && !isBoldEffect) {
+            geo.translate(0, 0, tAbsBevel);
+            
+            const bottomGeos: THREE.BufferGeometry[] = [];
+            const N = tFillet ? 3 : 1;
+            for (let i = 0; i < N; i++) {
+                const t_start = i / N;
+                const t_end = (i + 1) / N;
+                
+                // Concave curve mapping
+                const z_bottom = tAbsBevel * (1 - Math.cos(t_start * Math.PI / 2));
+                const z_top = tAbsBevel * (1 - Math.cos(t_end * Math.PI / 2));
+                
+                const r_bottom = bSize * (1 - Math.sin(t_start * Math.PI / 2));
+                const r_top = bSize * (1 - Math.sin(t_end * Math.PI / 2));
+                
+                const segThickness = z_top - z_bottom;
+                const segSize = r_bottom - r_top;
+                
+                const totalInflate = boldOffset + r_top;
+                const segShapes = applyOffset(shapes, totalInflate);
+                
+                const segGeo = new THREE.ExtrudeGeometry(segShapes, {
+                    depth: 0.001,
+                    bevelEnabled: true,
+                    bevelThickness: segThickness,
+                    bevelSize: segSize,
+                    bevelSegments: 1, 
+                    curveSegments: 12
+                });
+                
+                segGeo.translate(0, 0, z_bottom - 0.001);
+                bottomGeos.push(segGeo);
+            }
+            bottomGeos.push(geo);
+            geo = BufferGeometryUtils.mergeGeometries(bottomGeos);
+        }
         
         if (params.textItalic) {
             const shearMatrix = new THREE.Matrix4().makeShear(0, 0, 0.3, 0, 0, 0); // Correct shear for Y slanting X
