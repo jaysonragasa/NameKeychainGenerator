@@ -1,26 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
-import { getSavedProjects } from '../lib/projectStorage';
 
 interface SaveModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (name: string) => void;
-    currentName: string | null;
 }
 
-export function SaveModal({ isOpen, onClose, onSave, currentName }: SaveModalProps) {
-    const [name, setName] = useState(currentName || '');
+export function SaveModal({ isOpen, onClose, onSave }: SaveModalProps) {
+    const [name, setName] = useState('My Keychain');
     const [error, setError] = useState('');
-    const [existingProjects, setExistingProjects] = useState<string[]>([]);
     
     useEffect(() => {
         if (isOpen) {
-            setName(currentName || '');
+            setName('My Keychain');
             setError('');
-            setExistingProjects(getSavedProjects());
         }
-    }, [isOpen, currentName]);
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -30,13 +26,6 @@ export function SaveModal({ isOpen, onClose, onSave, currentName }: SaveModalPro
             setError('Project name cannot be empty');
             return;
         }
-        
-        if (existingProjects.includes(trimmedName) && trimmedName !== currentName) {
-            if (!window.confirm(`A project named "${trimmedName}" already exists. Overwrite?`)) {
-                return;
-            }
-        }
-        
         onSave(trimmedName);
     };
 
@@ -46,23 +35,25 @@ export function SaveModal({ isOpen, onClose, onSave, currentName }: SaveModalPro
                 <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
                         <Save size={16} className="text-cyan-400" />
-                        Save Project As
+                        Save Project File
                     </h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
                         <X size={18} />
                     </button>
                 </div>
                 <div className="p-5">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Project Name</label>
-                    <input 
-                        type="text" 
-                        value={name}
-                        onChange={(e) => { setName(e.target.value); setError(''); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
-                        placeholder="e.g. My Awesome Tag"
-                        autoFocus
-                        className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-slate-600"
-                    />
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">File Name</label>
+                    <div className="flex items-center gap-2">
+                        <input 
+                            type="text" 
+                            value={name}
+                            onChange={(e) => { setName(e.target.value); setError(''); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
+                            autoFocus
+                            className="w-full bg-[#0a0c10] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-slate-600"
+                        />
+                        <span className="text-slate-500 font-mono text-sm">.json</span>
+                    </div>
                     {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
                     
                     <div className="mt-6 flex justify-end gap-3">
@@ -76,7 +67,7 @@ export function SaveModal({ isOpen, onClose, onSave, currentName }: SaveModalPro
                             onClick={handleSave}
                             className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.2)]"
                         >
-                            Save
+                            Download
                         </button>
                     </div>
                 </div>

@@ -12,8 +12,6 @@ import { KeychainParams } from './lib/keychainLogic';
 import { exportToSTL } from './lib/exportSTL';
 import { exportTo3MFFile } from './lib/export3MF';
 import { SaveModal } from './components/SaveModal';
-import { OpenModal } from './components/OpenModal';
-import { saveProject, loadProject } from './lib/projectStorage';
 const STORAGE_KEY = 'keyforge-3d-params';
 
 const defaultParams: KeychainParams = {
@@ -83,9 +81,8 @@ export default function App() {
     const [isExporting, setIsExporting] = useState(false);
     
     // Project management state
-    const [currentProjectName, setCurrentProjectName] = useState<string | null>(null);
     const [showSaveModal, setShowSaveModal] = useState(false);
-    const [showOpenModal, setShowOpenModal] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [leftOpen, setLeftOpen] = useState(window.innerWidth > 768);
     const [rightOpen, setRightOpen] = useState(window.innerWidth > 768);
     const [showDonation, setShowDonation] = useState(false);
@@ -129,8 +126,37 @@ export default function App() {
         }
     };
 
+    const handleOpenFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const contents = e.target?.result as string;
+                const loadedParams = JSON.parse(contents) as KeychainParams;
+                if (loadedParams && typeof loadedParams === 'object') {
+                    setParams({ ...defaultParams, ...loadedParams });
+                }
+            } catch (err) {
+                console.error("Failed to parse project file", err);
+                alert("Failed to load project file. It may be corrupted or in an invalid format.");
+            }
+        };
+        reader.readAsText(file);
+        
+        event.target.value = '';
+    };
+
     return (
         <div className="h-screen w-full bg-[#0f1115] text-slate-200 flex flex-col font-sans overflow-hidden">
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleOpenFile} 
+                accept=".json" 
+                className="hidden" 
+            />
             <nav className="h-14 md:h-16 px-4 md:px-8 flex flex-none items-center justify-between bg-[#16191f] border-b border-white/5 z-30 relative">
                 <div className="flex items-center gap-3">
                     <div className="w-6 h-6 md:w-8 md:h-8 bg-cyan-500 rounded flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.3)]">
@@ -141,36 +167,18 @@ export default function App() {
                 <div className="flex items-center gap-6 text-xs md:text-sm font-medium">
                     <div className="flex items-center gap-2 mr-4">
                         <button 
-                            onClick={() => setShowOpenModal(true)}
+                            onClick={() => fileInputRef.current?.click()}
                             className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
                         >
-                            Open
-                        </button>
-                        <button 
-                            onClick={() => {
-                                if (currentProjectName) {
-                                    saveProject(currentProjectName, params);
-                                } else {
-                                    setShowSaveModal(true);
-                                }
-                            }}
-                            className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
-                        >
-                            Save
+                            Open Project
                         </button>
                         <button 
                             onClick={() => setShowSaveModal(true)}
                             className="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
                         >
-                            Save As...
+                            Save Project
                         </button>
                     </div>
-                    {currentProjectName && (
-                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 mr-4">
-                            <span className="text-[10px] uppercase tracking-wider opacity-70">Project:</span>
-                            <span className="font-semibold">{currentProjectName}</span>
-                        </div>
-                    )}
                     <span className="text-cyan-400 cursor-default border-b-2 border-cyan-400 py-4 md:py-5">Generator</span>
                 </div>
             </nav>
@@ -335,23 +343,15 @@ export default function App() {
             <SaveModal 
                 isOpen={showSaveModal} 
                 onClose={() => setShowSaveModal(false)} 
-                currentName={currentProjectName}
                 onSave={(name) => {
-                    saveProject(name, params);
-                    setCurrentProjectName(name);
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(params, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", `${name}.json`);
+                    document.body.appendChild(downloadAnchorNode);
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
                     setShowSaveModal(false);
-                }}
-            />
-            <OpenModal 
-                isOpen={showOpenModal} 
-                onClose={() => setShowOpenModal(false)} 
-                onLoad={(name) => {
-                    const loadedParams = loadProject(name);
-                    if (loadedParams) {
-                        setParams(loadedParams);
-                        setCurrentProjectName(name);
-                        setShowOpenModal(false);
-                    }
                 }}
             />
         </div>
